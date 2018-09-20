@@ -58,6 +58,7 @@ def private():
         solves=solves,
         awards=awards,
         user=user,
+        team=team,
         score=score,
         place=place,
         score_frozen=config.is_scoreboard_frozen()
