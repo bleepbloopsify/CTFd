@@ -229,11 +229,14 @@ if __name__ == '__main__':
                 name=word,
                 description=gen_sentence(),
                 value=gen_value(),
-                category=gen_category()
+                category=gen_category(),
+                type='standard',
             )
             db.session.add(chal)
             db.session.commit()
             f = Flags(
+                content='aaaa',
+                data='aaaa',
                 challenge_id=x + 1,
                 content=word,
                 type='static'
