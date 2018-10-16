@@ -5,7 +5,7 @@
 				<div class="container">
 					<div class="row">
 						<div class="col-md-12">
-							<h3 class="chal-title text-center">{{ name }}</h3>
+							<h3 class="chal-title text-center"></h3>
 						</div>
 					</div>
 				</div>
@@ -14,7 +14,9 @@
 				</button>
 			</div>
 			<div class="modal-body">
-				<form method="POST">
+				<form method="POST" action="{{ request.script_root }}/admin/chal/update">
+					<input name='nonce' type='hidden' value="{{ nonce }}">
+
 					<div class="form-group">
 						<label for="name">Name
 							<i class="far fa-question-circle text-muted cursor-help" data-toggle="tooltip"
@@ -63,18 +65,47 @@
 					</div>
 
 					<div class="form-group">
-						<label for="value">Value
+						<label for="value">Current Value
 							<i class="far fa-question-circle text-muted cursor-help" data-toggle="tooltip"
 							   data-placement="right"
-							   title="This is how many points teams will receive once they solve this challenge."></i>
+							   title="This is how many points the challenge is worth right now."></i>
 						</label>
 						<input type="number" class="form-control chal-value" name="value" placeholder="Enter value"
 							   value="{{ value }}" required>
 					</div>
 
+					<div class="form-group">
+						<label for="value">Initial Value
+							<i class="far fa-question-circle text-muted cursor-help" data-toggle="tooltip"
+							   data-placement="right"
+							   title="This is how many points the challenge was worth initially."></i>
+						</label>
+						<input type="number" class="form-control chal-initial" name="initial" placeholder="Enter value"
+							   value="{{ initial }}" required>
+					</div>
+
+					<div class="form-group">
+						<label for="value">Decay Limit
+							<i class="far fa-question-circle text-muted cursor-help" data-toggle="tooltip"
+							   data-placement="right"
+							   title="The amount of solves before the challenge reaches its minimum value"></i>
+						</label>
+						<input type="number" class="form-control chal-decay" name="decay"
+							   placeholder="Enter decay limit" value="{{ decay }}" required>
+					</div>
+
+					<div class="form-group">
+						<label for="value">Minimum Value
+							<i class="far fa-question-circle text-muted cursor-help" data-toggle="tooltip"
+							   data-placement="right" title="This is the lowest that the challenge can be worth"></i>
+						</label>
+						<input type="number" class="form-control chal-minimum" name="minimum"
+							   placeholder="Enter minimum value" value="{{ minimum }}" required>
+					</div>
+
 					<div class="checkbox">
 						<label>
-							<input class="chal-attempts-checkbox" id="limit_max_attempts"
+							<input class="chal-attempts-checkbox" id="limit_max_attempts" name="limit_max_attempts"
 								   type="checkbox" {% if max_attempts %}checked{% endif %}>
 							Limit challenge attempts
 						</label>
@@ -96,8 +127,9 @@
 						</label>
 					</div>
 
-					<div class="text-center">
-						<button class="btn btn-success btn-outlined" type="submit">Update
+					<input type="hidden" value="{{ nonce }}" name="nonce" id="nonce">
+					<div style="text-align:center">
+						<button class="btn btn-success btn-outlined update-challenge-submit" type="submit">Update
 						</button>
 					</div>
 				</form>
