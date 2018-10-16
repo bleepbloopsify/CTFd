@@ -238,8 +238,8 @@ if __name__ == '__main__':
                 content='aaaa',
                 data='aaaa',
                 challenge_id=x + 1,
-                content=word,
-                type='static'
+                # content=word,
+                type='standard'
             )
             db.session.add(f)
             db.session.commit()
