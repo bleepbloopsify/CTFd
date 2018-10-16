@@ -235,10 +235,9 @@ if __name__ == '__main__':
             db.session.add(chal)
             db.session.commit()
             f = Flags(
-                content='aaaa',
-                data='aaaa',
+                content=word,
+                data=None,
                 challenge_id=x + 1,
-                # content=word,
                 type='standard'
             )
             db.session.add(f)
