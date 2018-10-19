@@ -182,15 +182,16 @@ class Tags(db.Model):
 class Files(db.Model):
     __tablename__ = 'files'
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(80))
+    type = db.Column(db.String(80), default='standard')
     location = db.Column(db.Text)
 
     __mapper_args__ = {
+        'polymorphic_identity': 'standard',
         'polymorphic_on': type
     }
 
-    def __init__(self, location):
-        self.location = location
+    def __init__(self, *args, **kwargs):
+        super(Files, self).__init__(**kwargs)
 
     def __repr__(self):
         return "<File type={type} location={location}>".format(type=self.type, location=self.location)
@@ -198,24 +199,22 @@ class Files(db.Model):
 
 class ChallengeFiles(Files):
     __mapper_args__ = {
-        'polymorphic_identity': 'challenges'
+        'polymorphic_identity': 'challenge'
     }
     challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id'))
 
-    def __init__(self, challenge_id, location):
-        self.challenge_id = challenge_id
-        self.location = location
+    def __init__(self, *args, **kwargs):
+        super(ChallengeFiles, self).__init__(**kwargs)
 
 
 class PageFiles(Files):
     __mapper_args__ = {
-        'polymorphic_identity': 'pages'
+        'polymorphic_identity': 'page'
     }
     page_id = db.Column(db.Integer, db.ForeignKey('pages.id'))
 
-    def __init__(self, page_id, location):
-        self.page_id = page_id
-        self.location = location
+    def __init__(self, *args, **kwargs):
+        super(PageFiles, self).__init__(**kwargs)
 
 
 class Flags(db.Model):
@@ -283,17 +282,6 @@ class Users(db.Model):
     def __init__(self, **kwargs):
         super(Users, self).__init__(**kwargs)
         self.password = hash_password(str(kwargs['password']))
-
-    def get_dict(self, admin=False):
-        obj = {
-            'id': self.id,
-            'name': self.name,
-            'team_id': self.team_id,
-            'website': self.website,
-            'country': self.country,
-            'bracket': self.bracket
-        }
-        return obj
 
     @property
     def score(self):
