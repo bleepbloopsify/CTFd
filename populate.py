@@ -16,13 +16,12 @@ CHAL_AMOUNT = 20
 AWARDS_AMOUNT = 5
 
 categories = [
-    'Exploitation',
-    'Reversing',
-    'Web',
-    'Forensics',
-    'Scripting',
-    'Cryptography',
-    'Networking',
+    'PWN',
+    'REV',
+    'WEB',
+    'FOR',
+    'ETC',
+    'CRY',
 ]
 lorems = [
     'Lorem', 'ipsum', 'dolor', 'sit', 'amet,', 'consectetur', 'adipiscing', 'elit.',
@@ -238,7 +237,7 @@ if __name__ == '__main__':
                 content=word,
                 data=None,
                 challenge_id=x + 1,
-                type='standard'
+                type='static'
             )
             db.session.add(f)
             db.session.commit()
