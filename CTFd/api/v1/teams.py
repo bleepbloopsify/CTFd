@@ -2,6 +2,8 @@ from flask import session, request
 from flask_restplus import Namespace, Resource
 from CTFd.models import db, Teams, Solves, Awards, Fails
 from CTFd.schemas.teams import TeamSchema
+from CTFd.schemas.submissions import SubmissionSchema
+from CTFd.schemas.awards import AwardSchema
 from CTFd.utils.user import (
     get_current_team,
     is_admin
@@ -51,6 +53,7 @@ class TeamPublic(Resource):
     def patch(self, team_id):
         team = Teams.query.filter_by(id=team_id).first_or_404()
         data = request.get_json()
+        data['id'] = team_id
         response = TeamSchema(view='admin', instance=team, partial=True).load(data)
         if response.errors:
             return response.errors
@@ -84,9 +87,7 @@ class TeamPrivate(Resource):
     @authed_only
     def get(self):
         team = get_current_team()
-
-        view = TeamSchema.views.get('self')
-        response = TeamSchema(view=view).dump(team)
+        response = TeamSchema(view='self').dump(team)
         return response
 
     @authed_only
@@ -103,11 +104,11 @@ class TeamPrivate(Resource):
         return response
 
 
-@teams_namespace.route('/<team_id>/mail')
-@teams_namespace.param('team_id', "Team ID or 'me'")
-class TeamMails(Resource):
-    def post(self, team_id):
-        pass
+# @teams_namespace.route('/<team_id>/mail')
+# @teams_namespace.param('team_id', "Team ID or 'me'")
+# class TeamMails(Resource):
+#     def post(self, team_id):
+#         pass
 
 
 @teams_namespace.route('/<team_id>/solves')
@@ -129,7 +130,10 @@ class TeamSolves(Resource):
             if team_id != session.get('team_id'):
                 solves = solves.filter(Solves.date < freeze)
 
-        response = [solve.get_dict() for solve in solves.all()]
+        view = 'admin' if is_admin() else 'user'
+
+        schema = SubmissionSchema(view=view, many=True)
+        response = schema.dump(solves.all()).data
         return response
 
 
@@ -150,7 +154,10 @@ class TeamFails(Resource):
             if team_id != session.get('team_id'):
                 fails = fails.filter(Solves.date < freeze)
 
-        response = [fail.get_dict() for fail in fails.all()]
+        view = 'admin' if is_admin() else 'user'
+
+        schema = SubmissionSchema(view=view, many=True)
+        response = schema.dump(fails.all()).data
         return response
 
 
@@ -171,5 +178,6 @@ class TeamAwards(Resource):
             if team_id != session.get('team_id'):
                 awards = awards.filter(Awards.date < freeze)
 
-        response = [award.get_dict() for award in awards.all()]
+        schema = SubmissionSchema(many=True)
+        response = schema.dump(awards.all()).data
         return response
