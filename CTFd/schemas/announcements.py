@@ -2,13 +2,13 @@ from sqlalchemy.sql.expression import union_all
 from marshmallow import fields, post_load
 from marshmallow import validate, ValidationError
 from marshmallow_sqlalchemy import field_for
-from CTFd.models import ma, Pages
+from CTFd.models import ma, Announcements
 
 
-class PageSchema(ma.ModelSchema):
+class AnnouncementSchema(ma.ModelSchema):
     class Meta:
-        model = Pages
-        dump_only = ('id', )
+        model = Announcements
+        dump_only = ('id', 'date')
 
     def __init__(self, view=None, *args, **kwargs):
         if view:
@@ -17,5 +17,4 @@ class PageSchema(ma.ModelSchema):
             elif type(view) == list:
                 kwargs['only'] = view
 
-        super(PageSchema, self).__init__(*args, **kwargs)
-
+        super(AnnouncementSchema, self).__init__(*args, **kwargs)

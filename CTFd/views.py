@@ -67,7 +67,7 @@ def setup():
             page = Pages(
                 title=None,
                 route='index',
-                html=index,
+                content=index,
                 draft=False
             )
 
@@ -136,7 +136,7 @@ def static_html(template):
         if page.auth_required and authed() is False:
             return redirect(url_for('auth.login', next=request.path))
 
-        return render_template('page.html', content=markdown(page.html))
+        return render_template('page.html', content=markdown(page.content))
 
 
 @views.route('/settings', methods=['POST', 'GET'])
@@ -188,6 +188,7 @@ def settings():
                         session['username'] = team.name
                 if team.email != email.lower():
                     team.email = email.lower()
+                    session['email'] = team.email
                     if get_config('verify_emails'):
                         team.verified = False
 
