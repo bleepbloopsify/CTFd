@@ -171,7 +171,7 @@ def create_app(config='CTFd.config.Config'):
         if app.config.get('REVERSE_PROXY'):
             app.wsgi_app = ProxyFix(app.wsgi_app)
 
-        update_check(force=True)
+        # update_check(force=True)
 
         version = utils.get_config('ctf_version')
 
