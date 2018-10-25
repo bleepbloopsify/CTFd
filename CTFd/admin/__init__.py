@@ -12,12 +12,15 @@ from flask import (
 
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.user import is_admin
-from CTFd.utils import config, cache, validators, uploads, user as current_user, get_config, set_config
+from CTFd.utils import config, validators, uploads, user as current_user, get_config, set_config
+from CTFd.cache import cache
 from CTFd.utils.exports import export_ctf, import_ctf
-from CTFd.models import db, Configs
+from CTFd.models import db, Configs, get_class_by_tablename
 
 import datetime
 import os
+import six
+import csv
 
 
 admin = Blueprint('admin', __name__)
@@ -30,6 +33,7 @@ from CTFd.admin import statistics
 from CTFd.admin import teams
 from CTFd.admin import users
 from CTFd.admin import submissions
+from CTFd.admin import announcements
 
 
 @admin.route('/admin', methods=['GET'])
@@ -98,11 +102,43 @@ def admin_export_ctf():
     return send_file(backup, as_attachment=True, attachment_filename=full_name)
 
 
+@admin.route('/admin/export/csv')
+@admins_only
+def admin_export_csv():
+    table = request.args.get('table')
+
+    # TODO: It might make sense to limit dumpable tables. Config could potentially leak sensitive information.
+    model = get_class_by_tablename(table)
+    if model is None:
+        abort(404)
+
+    output = six.StringIO()
+    writer = csv.writer(output)
+
+    header = [column.name for column in model.__mapper__.columns]
+    writer.writerow(header)
+
+    responses = model.query.all()
+
+    for curr in responses:
+        writer.writerow([getattr(curr, column.name) for column in model.__mapper__.columns])
+
+    output.seek(0)
+    return send_file(
+        output,
+        as_attachment=True,
+        cache_timeout=-1,
+        attachment_filename="{name}-{table}.csv".format(name=config.ctf_name(), table=table)
+    )
+
+
 @admin.route('/admin/config', methods=['GET', 'POST'])
 @admins_only
 def admin_config():
     # Clear the cache so that we don't get stale values
     cache.clear()
+
+    database_tables = sorted(db.metadata.tables.keys())
 
     ctf_name = get_config('ctf_name')
     user_mode = get_config('user_mode')
@@ -137,6 +173,8 @@ def admin_config():
 
     workshop_mode = get_config('workshop_mode')
     paused = get_config('paused')
+
+    domain_whitelist = get_config('domain_whitelist')
 
     db.session.commit()
     db.session.close()
@@ -173,5 +211,7 @@ def admin_config():
         view_after_ctf=view_after_ctf,
         themes=themes,
         workshop_mode=workshop_mode,
-        paused=paused
+        paused=paused,
+        database_tables=database_tables,
+        domain_whitelist=domain_whitelist
     )

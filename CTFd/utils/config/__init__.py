@@ -1,6 +1,6 @@
 from flask import current_app as app
 from CTFd.models import Configs, Users, Teams
-from CTFd.utils import cache
+from CTFd.cache import cache
 from CTFd.utils import get_config
 from CTFd.utils.user import authed
 import time
@@ -86,6 +86,8 @@ def mailgun():
 
 @cache.memoize()
 def mailserver():
+    if app.config.get('MAIL_SERVER') and app.config.get('MAIL_PORT'):
+        return True
     if get_config('mail_server') and get_config('mail_port'):
         return True
     return False

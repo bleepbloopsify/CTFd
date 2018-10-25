@@ -20,6 +20,7 @@
 	<script type="text/javascript">
 			var script_root = "{{ request.script_root }}";
 			var csrf_nonce = "{{ nonce }}";
+			var user_mode = "{{ get_config('user_mode') }}";
 	</script>
 	{% block stylesheets %} {% endblock %}
 </head>
@@ -35,6 +36,8 @@
 			<div class="collapse navbar-collapse" id="base-navbars">
 				<ul class="navbar-nav mr-auto">
 					<li class="nav-item"><a class="nav-link" href="{{ request.script_root }}/admin/statistics">Statistics</a></li>
+					<li class="nav-item"><a class="nav-link" href="{{ request.script_root }}/admin/announcements">Announcements</a>
+					</li>
 					<li class="nav-item dropdown">
 							<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Pages</a>
 							<div class="dropdown-menu">

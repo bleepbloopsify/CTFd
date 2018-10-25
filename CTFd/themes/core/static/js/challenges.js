@@ -14,32 +14,25 @@ function loadchal(id) {
 
 function loadchalbyname(chalname) {
     var obj = $.grep(challenges, function (e) {
-      return e.name == chalname;
+        return e.name == chalname;
     })[0];
 
     updateChalWindow(obj);
 }
 
 function updateChalWindow(obj) {
-    $.get(script_root + "/api/v1/challenges/" + obj.id, function(challenge_data){
-        $.getScript(script_root + obj.script, function(){
+    $.get(script_root + "/api/v1/challenges/" + obj.id, function (response) {
+        var challenge_data = response.data;
+
+        $.getScript(script_root + obj.script, function () {
             $.get(script_root + obj.template, function (template_data) {
                 $('#chal-window').empty();
-
                 var template = nunjucks.compile(template_data);
-
-                var solves = obj.solves == 1 ? " Solve" : " Solves";
-                var solves = obj.solves + solves;
-
-                var nonce = $('#nonce').val();
-
                 window.challenge.data = challenge_data;
-
                 window.challenge.preRender();
 
                 challenge_data['description'] = window.challenge.render(challenge_data['description']);
                 challenge_data['script_root'] = script_root;
-                challenge_data['solves'] = solves;
 
                 $('#chal-window').append(template.render(challenge_data));
 
@@ -99,14 +92,14 @@ function updateChalWindow(obj) {
     });
 }
 
-$("#answer-input").keyup(function(event){
-    if(event.keyCode == 13){
+$("#answer-input").keyup(function (event) {
+    if (event.keyCode == 13) {
         $("#submit-key").click();
     }
 });
 
 
-function renderSubmissionResponse(data, cb){
+function renderSubmissionResponse(data, cb) {
     var result = $.parseJSON(JSON.stringify(data));
 
     var result_message = $('#result-message');
@@ -168,7 +161,7 @@ function renderSubmissionResponse(data, cb){
 }
 
 function marksolves(cb) {
-    $.get(script_root + '/api/v1/users/me/solves', function (data) {
+    $.get(script_root + '/api/v1/' + user_mode + '/me/solves', function (data) {
         var solves = $.parseJSON(JSON.stringify(data));
         for (var i = solves.length - 1; i >= 0; i--) {
             var id = solves[i].challenge_id;
@@ -182,8 +175,8 @@ function marksolves(cb) {
     });
 }
 
-function load_user_solves(cb){
-    $.get(script_root + '/api/v1/users/me/solves', function (data) {
+function load_user_solves(cb) {
+    $.get(script_root + '/api/v1/'+ user_mode +'/me/solves', function (data) {
         var solves = $.parseJSON(JSON.stringify(data));
 
         for (var i = solves.length - 1; i >= 0; i--) {
@@ -197,7 +190,8 @@ function load_user_solves(cb){
     });
 }
 
-function updatesolves(cb){
+// TODO: I think this function can be deprecated
+function updatesolves(cb) {
     $.get(script_root + '/api/v1/statistics/challenges/solves', function (data) {
         var solves = $.parseJSON(JSON.stringify(data));
         var chalids = Object.keys(solves);
@@ -206,7 +200,7 @@ function updatesolves(cb){
             for (var z = 0; z < challenges.length; z++) {
                 var obj = challenges[z];
                 var solve_cnt = solves[chalids[i]]['solves'];
-                if (obj.id == chalids[i]){
+                if (obj.id == chalids[i]) {
                     if (solve_cnt) {
                         obj.solves = solve_cnt;
                     } else {
@@ -214,32 +208,33 @@ function updatesolves(cb){
                     }
                 }
             }
-        };
+        }
         if (cb) {
             cb();
         }
     });
 }
 
-function getsolves(id){
-  $.get(script_root + '/api/v1/challenges/'+id+'/solves', function (data) {
-    var teams = data['teams'];
-    $('.chal-solves').text((parseInt(teams.length) + " Solves"));
-    var box = $('#chal-solves-names');
-    box.empty();
-    for (var i = 0; i < teams.length; i++) {
-      var id = teams[i].id;
-      var name = teams[i].name;
-      var date = moment(teams[i].date).local().fromNow();
-      box.append('<tr><td><a href="team/{0}">{1}</td><td>{2}</td></tr>'.format(id, htmlentities(name), date));
-    };
-  });
+function getsolves(id) {
+    $.get(script_root + '/api/v1/challenges/' + id + '/solves', function (data) {
+        $('.chal-solves').text(
+            (parseInt(data.length) + " Solves")
+        );
+        var box = $('#chal-solves-names');
+        box.empty();
+        for (var i = 0; i < data.length; i++) {
+            var id = data[i].account_id;
+            var name = data[i].name;
+            var date = moment(data[i].date).local().fromNow();
+            box.append('<tr><td><a href="teams/{0}">{1}</td><td>{2}</td></tr>'.format(id, htmlentities(name), date));
+        }
+    });
 }
 
 function loadchals(cb) {
-    $.get(script_root + "/api/v1/challenges", function (data) {
+    $.get(script_root + "/api/v1/challenges", function (response) {
         var categories = [];
-        challenges = $.parseJSON(JSON.stringify(data));
+        challenges = response.data;
 
         $('#challenges-board').empty();
 
@@ -249,16 +244,16 @@ function loadchals(cb) {
                 var category = challenges[i].category;
                 categories.push(category);
 
-                var categoryid = category.replace(/ /g,"-").hashCode();
+                var categoryid = category.replace(/ /g, "-").hashCode();
                 var categoryrow = $('' +
                     '<div id="{0}-row" class="pt-5">'.format(categoryid) +
-                        '<div class="category-header col-md-12 mb-3">' +
-                        '</div>' +
-                        '<div class="category-challenges col-md-12">' +
-                            '<div class="challenges-row col-md-12"></div>' +
-                        '</div>' +
+                    '<div class="category-header col-md-12 mb-3">' +
+                    '</div>' +
+                    '<div class="category-challenges col-md-12">' +
+                    '<div class="challenges-row col-md-12"></div>' +
+                    '</div>' +
                     '</div>');
-                categoryrow.find(".category-header").append($("<h3>"+ category +"</h3>"));
+                categoryrow.find(".category-header").append($("<h3>" + category + "</h3>"));
 
                 $('#challenges-board').append(categoryrow);
             }
@@ -266,12 +261,12 @@ function loadchals(cb) {
 
         for (var i = 0; i <= challenges.length - 1; i++) {
             var chalinfo = challenges[i];
-            var challenge = chalinfo.category.replace(/ /g,"-").hashCode();
-            var chalid = chalinfo.name.replace(/ /g,"-").hashCode();
-            var catid = chalinfo.category.replace(/ /g,"-").hashCode();
+            var challenge = chalinfo.category.replace(/ /g, "-").hashCode();
+            var chalid = chalinfo.name.replace(/ /g, "-").hashCode();
+            var catid = chalinfo.category.replace(/ /g, "-").hashCode();
             var chalwrap = $("<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid));
 
-            if (user_solves.indexOf(chalinfo.id) == -1){
+            if (user_solves.indexOf(chalinfo.id) == -1) {
                 var chalbutton = $("<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(chalinfo.id));
             } else {
                 var chalbutton = $("<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(chalinfo.id));
@@ -288,41 +283,42 @@ function loadchals(cb) {
             chalbutton.append(chalscore);
             chalwrap.append(chalbutton);
 
-            $("#"+ catid +"-row").find(".category-challenges > .challenges-row").append(chalwrap);
-        };
+            $("#" + catid + "-row").find(".category-challenges > .challenges-row").append(chalwrap);
+        }
+        ;
 
         // marksolves();
 
         $('.challenge-button').click(function (e) {
             loadchal(this.value);
+            getsolves(this.value);
         });
 
-        if (cb){
+        if (cb) {
             cb();
         }
     });
 }
 
-function loadhint(hintid){
+function loadhint(hintid) {
     var md = window.markdownit({
         html: true,
     });
     ezq({
         title: "Unlock Hint?",
         body: "Are you sure you want to open this hint?",
-        success: function(){
-            $.post(script_root + "/hints/" + hintid, {'nonce': $('#nonce').val()}, function (data) {
-                if (data.errors) {
+        success: function () {
+            $.post(script_root + "/hints/" + hintid, {'nonce': $('#nonce').val()}, function (response) {
+                if (response.errors) {
                     ezal({
                         title: "Error!",
-                        body: data.errors,
+                        body: response.errors,
                         button: "Okay"
                     });
                 } else {
-
                     ezal({
                         title: "Hint",
-                        body: md.render(data.hint),
+                        body: md.render(response.data.hint),
                         button: "Got it!"
                     });
                 }
@@ -348,25 +344,13 @@ $('#chal-window').on('hide.bs.modal', function (event) {
     $("#too-fast").slideUp();
 });
 
-// $.distint(array)
-// Unique elements in array
-$.extend({
-    distinct : function(anArray) {
-       var result = [];
-       $.each(anArray, function(i,v){
-           if ($.inArray(v, result) == -1) result.push(v);
-       });
-       return result;
-    }
-});
-
 var load_location_hash = function () {
     if (window.location.hash.length > 0) {
         loadchalbyname(decodeURIComponent(window.location.hash.substring(1)));
     }
 };
 
-function update(cb){
+function update(cb) {
     load_user_solves(function () { // Load the user's solved challenge ids
         loadchals(function () { //  Load the full list of challenges
             updatesolves(cb); // Load the counts of all challenge solves and then load the location hash specified challenge
@@ -374,8 +358,8 @@ function update(cb){
     });
 }
 
-$(function() {
-    update(function(){
+$(function () {
+    update(function () {
         load_location_hash();
     });
 });
@@ -383,9 +367,9 @@ $(function() {
 $('.nav-tabs a').click(function (e) {
     e.preventDefault();
     $(this).tab('show')
-})
+});
 
-$('#chal-window').on('hidden.bs.modal', function() {
+$('#chal-window').on('hidden.bs.modal', function () {
     $('.nav-tabs a:first').tab('show');
     history.replaceState('', document.title, window.location.pathname);
 });

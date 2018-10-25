@@ -3,15 +3,16 @@ import os
 
 from distutils.version import StrictVersion
 from flask import Flask
+from werkzeug.contrib.fixers import ProxyFix
 from jinja2 import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
 from sqlalchemy.engine.url import make_url
 from sqlalchemy_utils import database_exists, create_database
 from six.moves import input
 
-from CTFd.utils import cache, migrate, migrate_upgrade, migrate_stamp
+from CTFd.utils import migrate, migrate_upgrade, migrate_stamp
+from CTFd.cache import cache
 from CTFd.utils.updates import update_check
-# from CTFd import utils
 
 from CTFd.views import views
 from CTFd.teams import teams
@@ -166,6 +167,9 @@ def create_app(config='CTFd.config.Config'):
             app,
             message_queue=app.config.get('CACHE_REDIS_URL')
         )
+
+        if app.config.get('REVERSE_PROXY'):
+            app.wsgi_app = ProxyFix(app.wsgi_app)
 
         update_check(force=True)
 

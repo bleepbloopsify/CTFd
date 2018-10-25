@@ -1,9 +1,9 @@
-var socket = io.connect('http://' + document.domain + ':' + location.port);
+var socket = io.connect(window.location.protocol + '//' + document.domain + ':' + location.port);
 
 socket.on('announcement', function (data) {
     ezal({
-        title: "Announcement!",
-        body: data.message,
+        title: data.title,
+        body: data.content,
         button: "Got it!"
     });
 });

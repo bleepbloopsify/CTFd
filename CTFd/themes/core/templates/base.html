@@ -31,6 +31,7 @@
 		<script type="text/javascript">
 				var script_root = "{{ request.script_root }}";
 				var csrf_nonce = "{{ nonce }}";
+                var user_mode = "{{ get_config('user_mode') }}";
 				CTFd.urlRoot = script_root;
 		</script>
 </head>
@@ -68,6 +69,9 @@
 					{% endfor %}
 
 					<li class="nav-item">
+						<a class="nav-link" href="{{ request.script_root }}/announcements">Announcements</a>
+					</li>
+					<li class="nav-item">
 						<a class="nav-link" href="{{ request.script_root }}/users">Users</a>
 					</li>
 					{% if not get_config('workshop_mode') %}
@@ -88,8 +92,8 @@
 				<hr class="d-sm-flex d-md-flex d-lg-none">
 
 				<ul class="navbar-nav ml-md-auto d-block d-sm-flex d-md-flex">
-					{% if username is defined %}
-						{% if admin %}
+					{% if name is defined %}
+						{% if type == 'admin' %}
 							<li class="nav-item">
 								<a class="nav-link" href="{{ request.script_root }}/admin">Admin</a>
 							</li>

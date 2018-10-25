@@ -1,6 +1,6 @@
 from CTFd import create_app
 from CTFd.models import *
-from CTFd.utils import cache
+from CTFd.cache import cache
 from sqlalchemy_utils import database_exists, create_database, drop_database
 from sqlalchemy.engine.url import make_url
 import datetime
@@ -89,7 +89,7 @@ def get_scores(user):
 def gen_challenge(db, name='chal_name', description='chal_description', value=100, category='chal_category', type='standard', hidden=False):
     chal = Challenges(name, description, value, category)
     if hidden:
-        chal.hidden = hidden
+        chal.state = 'hidden'
     db.session.add(chal)
     db.session.commit()
     return chal

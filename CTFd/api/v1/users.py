@@ -6,7 +6,7 @@ from CTFd.utils.decorators import (
     admins_only
 )
 from CTFd.utils.dates import unix_time_to_utc, unix_time
-from CTFd.utils.user import get_current_user
+from CTFd.utils.user import get_current_user, is_admin
 from CTFd.utils import get_config
 
 from CTFd.schemas.submissions import SubmissionSchema
@@ -22,7 +22,17 @@ class UserList(Resource):
     def get(self):
         users = Users.query.filter_by(banned=False)
         response = UserSchema(view='user', many=True).dump(users)
-        return response
+
+        if response.errors:
+            return {
+                'success': False,
+                'errors': response.errors
+            }, 400
+
+        return {
+            'success': True,
+            'data': response.data
+        }
 
 
 @users_namespace.route('/<user_id>')
@@ -32,9 +42,20 @@ class User(Resource):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
         response = UserSchema('self').dump(user)
-        response['place'] = user.place
-        response['score'] = user.score
-        return response
+
+        if response.errors:
+            return {
+                'success': False,
+                'errors': response.errors
+            }, 400
+
+        response.data['place'] = user.place
+        response.data['score'] = user.score
+
+        return {
+            'success': True,
+            'data': response.data
+        }
 
     @admins_only
     def patch(self, user_id):
@@ -42,12 +63,19 @@ class User(Resource):
         data = request.get_json()
         response = UserSchema(view='admin', instance=user, partial=True).load(data)
         if response.errors:
-            return response.errors
+            return {
+                'success': False,
+                'errors': response.errors
+            }, 400
 
         db.session.commit()
-        response = UserSchema('admin').dump(response.data)
+        # response = UserSchema('admin').dump(response.data)
         db.session.close()
-        return response
+
+        return {
+            'success': True,
+            'data': response
+        }
 
     @admins_only
     def delete(self, user_id):
@@ -60,33 +88,41 @@ class User(Resource):
         db.session.commit()
         db.session.close()
 
-        response = {
+        return {
             'success': True
         }
-        return response
 
 
 @users_namespace.route('/me')
 class User(Resource):
     def get(self):
         user = get_current_user()
-        response = UserSchema('self').dump(user)
+        response = UserSchema('self').dump(user).data
         response['place'] = user.place
         response['score'] = user.score
-        return response
+        return {
+            'success': True,
+            'data': response
+        }
 
     @authed_only
     def patch(self):
-        team = get_current_user()
+        user = get_current_user()
         data = request.get_json()
-        response = UserSchema(view='self', instance=team, partial=True).load(data)
+        response = UserSchema(view='self', instance=user, partial=True).load(data)
         if response.errors:
-            return response.errors
+            return {
+                'success': False,
+                'errors': response.errors
+            }, 400
 
         db.session.commit()
-        response = UserSchema('self').dump(response.data)
+        # response = UserSchema('self').dump(response.data)
         db.session.close()
-        return response
+        return {
+            'success': True,
+            'data': response
+        }
 
     @admins_only
     def delete(self):
@@ -100,17 +136,9 @@ class User(Resource):
         db.session.commit()
         db.session.close()
 
-        response = {
+        return {
             'success': True
         }
-        return response
-
-
-# @users_namespace.route('/<team_id>/mail')
-# @users_namespace.param('team_id', "Team ID or 'me'")
-# class TeamMails(Resource):
-#     def post(self, team_id):
-#         pass
 
 
 @users_namespace.route('/<user_id>/solves')
@@ -122,16 +150,25 @@ class UserSolves(Resource):
         else:
             user = Users.query.filter_by(id=user_id).first_or_404()
 
-        solves = Solves.query.filter_by(user_id=user.id)
+        solves = user.get_solves(
+            admin=is_admin()
+        )
+        for solve in solves:
+            setattr(solve, 'value', 100)
 
-        freeze = get_config('freeze')
-        if freeze:
-            freeze = unix_time_to_utc(freeze)
-            if user_id != session.get('id'):
-                solves = solves.filter(Solves.date < freeze)
+        view = 'user' if not is_admin() else 'admin'
+        response = SubmissionSchema(view=view, many=True).dump(solves)
 
-        response = SubmissionSchema(many=True).dump(solves.all())
-        return response
+        if response.errors:
+            return {
+                'success': False,
+                'errors': response.errors
+            }, 400
+
+        return {
+            'success': True,
+            'data': response.data
+        }
 
 
 @users_namespace.route('/<user_id>/fails')
@@ -143,16 +180,22 @@ class UserFails(Resource):
         else:
             user = Users.query.filter_by(id=user_id).first_or_404()
 
-        fails = Fails.query.filter_by(user_id=user.id)
+        fails = user.get_fails(
+            admin=is_admin()
+        )
 
-        freeze = get_config('freeze')
-        if freeze:
-            freeze = unix_time_to_utc(freeze)
-            if user_id != session.get('id'):
-                fails = fails.filter(Solves.date < freeze)
+        view = 'user' if not is_admin() else 'admin'
+        response = SubmissionSchema(view=view, many=True).dump(fails)
+        if response.errors:
+            return {
+                'success': False,
+                'errors': response.errors
+            }, 400
 
-        response = SubmissionSchema(many=True).dump(fails.all())
-        return response
+        return {
+            'success': True,
+            'data': response.data
+        }
 
 
 @users_namespace.route('/<user_id>/awards')
@@ -164,13 +207,20 @@ class UserAwards(Resource):
         else:
             user = Users.query.filter_by(id=user_id).first_or_404()
 
-        awards = Awards.query.filter_by(user_id=user.id)
+        awards = user.get_awards(
+            admin=is_admin()
+        )
 
-        freeze = get_config('freeze')
-        if freeze:
-            freeze = unix_time_to_utc(freeze)
-            if user_id != session.get('id'):
-                awards = awards.filter(Awards.date < freeze)
+        view = 'user' if not is_admin() else 'admin'
+        response = AwardSchema(view=view, many=True).dump(awards)
 
-        response = AwardSchema(many=True).dump(awards)
-        return response
+        if response.errors:
+            return {
+                'success': False,
+                'errors': response.errors
+            }, 400
+
+        return {
+            'success': True,
+            'data': response.data
+        }

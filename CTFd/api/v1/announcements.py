@@ -18,16 +18,35 @@ class AnnouncementList(Resource):
         schema = AnnouncementSchema(many=True)
         result = schema.dump(announcements)
         if result.errors:
-            return result.errors
-        return result.data
+            return {
+                'success': False,
+                'errors': result.errors
+            }, 400
+        return {
+            'success': True,
+            'data': result.data
+        }
 
     @admins_only
     def post(self):
         req = request.get_json()
-        a = Announcements(
-            content=req['message']
-        )
-        db.session.add(a)
+
+        schema = AnnouncementSchema()
+        result = schema.load(req)
+
+        if result.errors:
+            return {
+                'success': False,
+                'errors': result.errors
+            }, 400
+
+        db.session.add(result.data)
         db.session.commit()
-        socketio.emit('announcement', req, broadcast=True)
-        return req
+
+        response = schema.dump(result.data)
+        socketio.emit('announcement', response.data, broadcast=True)
+
+        return {
+            'success': True,
+            'data': response.data
+        }
