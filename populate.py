@@ -242,7 +242,7 @@ if __name__ == '__main__':
             f = Flags(
                 content=word,
                 data=None,
-                challenge_id=x + 1,
+                challenge=chal,
                 type='static'
             )
             db.session.add(f)
@@ -251,12 +251,13 @@ if __name__ == '__main__':
         # Generating Files
         print("GENERATING FILES")
         AMT_CHALS_WITH_FILES = int(CHAL_AMOUNT * (3.0 / 4.0))
-        for x in range(AMT_CHALS_WITH_FILES):
-            chal = random.randint(1, CHAL_AMOUNT)
+        chals = Challenges.query.all()
+        for _ in Challenges.query:
             filename = gen_file()
+            chal = random.choice(chals)
             md5hash = hashlib.md5(filename.encode('utf-8')).hexdigest()
             chal_file = ChallengeFiles(
-                challenge_id=chal,
+                challenge=chal,
                 location=md5hash + '/' + filename
             )
             db.session.add(chal_file)
