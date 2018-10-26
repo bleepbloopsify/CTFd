@@ -140,6 +140,7 @@ def create_app(config='CTFd.config.Config'):
             db.create_all()
         else:
             if len(db.engine.table_names()) == 0:
+                db.create_all()
                 # This creates tables instead of db.create_all()
                 # Allows migrations to happen properly
                 migrate_upgrade()
