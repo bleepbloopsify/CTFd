@@ -73,6 +73,7 @@ def init_request_processors(app):
             try:
                 db.session.commit()
             except (InvalidRequestError, IntegrityError) as e:
+                print(e)
                 print(e.message)
                 db.session.rollback()
                 session.clear()

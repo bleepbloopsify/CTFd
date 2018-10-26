@@ -148,7 +148,7 @@ def create_app(config='CTFd.config.Config'):
                 # There is no alembic_version because CTFd is from before it had migrations
                 # Stamp it to the base migration
                 if confirm_upgrade():
-                    migrate_stamp(revision='cb3cfcc47e2f')
+                    # migrate_stamp(revision='cb3cfcc47e2f')
                     run_upgrade()
                 else:
                     exit()

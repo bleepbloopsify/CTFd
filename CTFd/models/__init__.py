@@ -83,9 +83,9 @@ class Pages(db.Model):
     title = db.Column(db.String(80))
     route = db.Column(db.String(80), unique=True)
     content = db.Column(db.Text)
-    draft = db.Column(db.Boolean)
-    hidden = db.Column(db.Boolean)
-    auth_required = db.Column(db.Boolean)
+    draft = db.Column(db.Boolean, default=0)
+    hidden = db.Column(db.Boolean, default=0)
+    auth_required = db.Column(db.Boolean, default=0)
     # TODO: Use hidden attribute
 
     files = db.relationship("PageFiles", backref="page")
