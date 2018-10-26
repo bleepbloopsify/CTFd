@@ -467,6 +467,8 @@ class Teams(db.Model):
 
     created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
+    region = db.Column(db.String(80))
+
     def __init__(self, **kwargs):
         super(Teams, self).__init__(**kwargs)
         self.password = hash_password(str(kwargs['password']))

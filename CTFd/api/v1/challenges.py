@@ -37,11 +37,6 @@ class ChallengeList(Resource):
             and_(Challenges.state != 'hidden', Challenges.state != 'locked')
         ).order_by(Challenges.value).all()
 
-        # challenges = filter(lambda c: c.state != 'hidden' and c.state != 'locked', challenges)
-
-        print(challenges)
-        print(list(Challenges.query.all()))
-
         response = []
         tag_schema = TagSchema(view='user', many=True)
         for challenge in challenges:
