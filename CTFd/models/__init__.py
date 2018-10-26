@@ -81,11 +81,11 @@ class Pages(db.Model):
     __tablename__ = 'pages'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80))
-    route = db.Column(db.String(80), unique=True)
+    route = db.Column(db.String(128), unique=True)
     content = db.Column(db.Text)
-    draft = db.Column(db.Boolean, default=0)
-    hidden = db.Column(db.Boolean, default=0)
-    auth_required = db.Column(db.Boolean, default=0)
+    draft = db.Column(db.Boolean, default=True)
+    hidden = db.Column(db.Boolean, default=False)
+    auth_required = db.Column(db.Boolean, default=False)
     # TODO: Use hidden attribute
 
     files = db.relationship("PageFiles", backref="page")
