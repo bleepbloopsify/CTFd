@@ -14,6 +14,8 @@ class ScoreboardList(Resource):
         standings = get_standings()
         response = []
 
+        print(standings)
+
         for i, x in enumerate(standings):
             response.append(
                 {
@@ -23,6 +25,9 @@ class ScoreboardList(Resource):
                     'score': int(x.score)
                 }
             )
+
+        print(response)
+
         return {
             'success': True,
             'data': response
