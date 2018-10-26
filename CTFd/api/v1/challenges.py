@@ -34,8 +34,13 @@ class ChallengeList(Resource):
     @viewable_without_authentication(status_code=403)
     def get(self):
         challenges = Challenges.query.filter(
-            Challenges.state.isnot('hidden'), Challenges.state.isnot('locked')
+            and_(Challenges.state != 'hidden', Challenges.state != 'locked')
         ).order_by(Challenges.value).all()
+
+        # challenges = filter(lambda c: c.state != 'hidden' and c.state != 'locked', challenges)
+
+        print(challenges)
+        print(list(Challenges.query.all()))
 
         response = []
         tag_schema = TagSchema(view='user', many=True)
