@@ -1,13 +1,19 @@
-from flask import session, request
+from flask import request, abort
 from flask_restplus import Namespace, Resource
 from CTFd.models import db, Users, Solves, Awards, Fails, Tracking, Unlocks
 from CTFd.utils.decorators import (
     authed_only,
     admins_only
 )
-from CTFd.utils.dates import unix_time_to_utc, unix_time
 from CTFd.utils.user import get_current_user, is_admin
-from CTFd.utils import get_config
+from CTFd.utils.decorators.visibility import check_account_visibility, check_score_visibility
+
+from CTFd.utils.config.visibility import (
+    accounts_visible,
+    challenges_visible,
+    registration_visible,
+    scores_visible
+)
 
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.awards import AwardSchema
@@ -19,6 +25,7 @@ users_namespace = Namespace('users', description="Endpoint to retrieve Users")
 
 @users_namespace.route('')
 class UserList(Resource):
+    @check_account_visibility
     def get(self):
         users = Users.query.filter_by(banned=False)
         response = UserSchema(view='user', many=True).dump(users)
@@ -59,7 +66,8 @@ class UserList(Resource):
 
 @users_namespace.route('/<int:user_id>')
 @users_namespace.param('user_id', "User ID")
-class User(Resource):
+class UserPublic(Resource):
+    @check_account_visibility
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
@@ -121,7 +129,8 @@ class User(Resource):
 
 
 @users_namespace.route('/me')
-class User(Resource):
+class UserPrivate(Resource):
+    @authed_only
     def get(self):
         user = get_current_user()
         response = UserSchema('self').dump(user).data
@@ -136,7 +145,8 @@ class User(Resource):
     def patch(self):
         user = get_current_user()
         data = request.get_json()
-        response = UserSchema(view='self', instance=user, partial=True).load(data)
+        schema = UserSchema(view='self', instance=user, partial=True)
+        response = schema.load(data)
         if response.errors:
             return {
                 'success': False,
@@ -144,13 +154,16 @@ class User(Resource):
             }, 400
 
         db.session.commit()
-        # response = UserSchema('self').dump(response.data)
+
+        response = schema.dump(response.data)
         db.session.close()
+        
         return {
             'success': True,
             'data': response
         }
 
+    # TODO: Does it even make sense to delete yourself?
     @admins_only
     def delete(self):
         user_id = get_current_user().id
@@ -175,6 +188,8 @@ class UserSolves(Resource):
         if user_id == 'me':
             user = get_current_user()
         else:
+            if accounts_visible() is False or scores_visible() is False:
+                abort(404)
             user = Users.query.filter_by(id=user_id).first_or_404()
 
         solves = user.get_solves(
@@ -199,6 +214,7 @@ class UserSolves(Resource):
 
     @admins_only
     def post(self, user_id):
+        # TODO: This should probably be replaced by /v1/solves
         user = Users.query.filter_by(id=user_id).first_or_404()
         req = request.get_json()
         response = SubmissionSchema('admin').load(req)
@@ -219,6 +235,8 @@ class UserFails(Resource):
         if user_id == 'me':
             user = get_current_user()
         else:
+            if accounts_visible() is False or scores_visible() is False:
+                abort(404)
             user = Users.query.filter_by(id=user_id).first_or_404()
 
         fails = user.get_fails(
@@ -246,6 +264,8 @@ class UserAwards(Resource):
         if user_id == 'me':
             user = get_current_user()
         else:
+            if accounts_visible() is False or scores_visible() is False:
+                abort(404)
             user = Users.query.filter_by(id=user_id).first_or_404()
 
         awards = user.get_awards(

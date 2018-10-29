@@ -21,11 +21,8 @@ def during_ctf_time_only(f):
             return f(*args, **kwargs)
         else:
             if ctf_ended():
-                if config.view_after_ctf():
-                    return f(*args, **kwargs)
-                else:
-                    error = '{} has ended'.format(config.ctf_name())
-                    abort(403, description=error)
+                error = '{} has ended'.format(config.ctf_name())
+                abort(403, description=error)
 
             if ctf_started() is False:
                 error = '{} has not started yet'.format(config.ctf_name())
@@ -65,31 +62,6 @@ def require_verified_emails(f):
     return _require_verified_emails
 
 
-def viewable_without_authentication(status_code=None, message=None):
-    """
-    Decorator that allows users to view the specified endpoint if viewing challenges without authentication is enabled
-    :param status_code:
-    :param message:
-    :return:
-    """
-
-    def viewable_without_authentication_decorator(f):
-        @functools.wraps(f)
-        def _viewable_without_authentication(*args, **kwargs):
-            if config.user_can_view_challenges():
-                return f(*args, **kwargs)
-            else:
-                if status_code:
-                    if status_code == 403:
-                        error = message or "An authorization error has occured"
-                    abort(status_code, description=error)
-                return redirect(url_for('auth.login', next=request.path))
-
-        return _viewable_without_authentication
-
-    return viewable_without_authentication_decorator
-
-
 def authed_only(f):
     """
     Decorator that requires the user to be authenticated
@@ -99,7 +71,7 @@ def authed_only(f):
 
     @functools.wraps(f)
     def authed_only_wrapper(*args, **kwargs):
-        if session.get('id'):
+        if authed():
             return f(*args, **kwargs)
         else:
             return redirect(url_for('auth.login', next=request.path))

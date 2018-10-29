@@ -17,10 +17,6 @@
 					<a class="nav-link rounded-0" href="#accounts" role="tab" data-toggle="tab">Accounts</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link rounded-0" href="#scores" role="tab"
-					   data-toggle="tab">Scores</a>
-				</li>
-				<li class="nav-item">
 					<a class="nav-link rounded-0" href="#settings" role="tab" data-toggle="tab">Settings</a>
 				</li>
 				<li class="nav-item">
@@ -50,8 +46,6 @@
 
 				{% include "admin/configs/accounts.html" %}
 
-				{% include "admin/configs/scores.html" %}
-
 				{% include "admin/configs/settings.html" %}
 
 				{% include "admin/configs/email.html" %}
@@ -66,6 +60,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ request.script_root }}/themes/admin/static/js/files/files.js"></script>
-<script src="{{ request.script_root }}/themes/admin/static/js/configs/configs.js"></script>
+<script src="{{ url_for('views.themes', theme='admin', path='js/files/files.js') }}"></script>
+<script src="{{ url_for('views.themes', theme='admin', path='js/configs/configs.js') }}"></script>
 {% endblock %}

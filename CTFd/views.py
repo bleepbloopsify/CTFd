@@ -1,22 +1,21 @@
-from flask import current_app as app, render_template, request, redirect, abort, jsonify, url_for, session, Blueprint, Response, send_file
+from flask import current_app as app, render_template, request, redirect, abort, url_for, session, Blueprint, Response, send_file
 from flask.helpers import safe_join
-from passlib.hash import bcrypt_sha256
 
-from CTFd.models import db, Admins, Files, Pages, Announcements
+from CTFd.models import db, Admins, Files, Pages, Notifications
 from CTFd.utils import markdown
 from CTFd.cache import cache
 from CTFd.utils import get_config, set_config
 from CTFd.utils.user import authed, get_current_user
 from CTFd.utils import config
+from CTFd.utils.uploads import get_uploader
 from CTFd.utils.config.pages import get_page
 from CTFd.utils.security.auth import login_user
 from CTFd.utils.security.csrf import generate_nonce
 from CTFd.utils import user as current_user
-from CTFd.utils.dates import ctf_ended, ctf_paused, ctf_started, ctftime, unix_time_to_utc
-from CTFd.utils import validators
+from CTFd.utils.dates import ctf_started, ctftime
 from CTFd.utils.decorators import authed_only
-
 import os
+
 
 views = Blueprint('views', __name__)
 
@@ -74,20 +73,16 @@ def setup():
                 content=index,
                 draft=False
             )
-
-            # max attempts per challenge
-            set_config('max_tries', 0)
+            # Visibility
+            set_config('challenge_visibility', 'private')
+            set_config('registration_visibility', 'public')
+            set_config('score_visibility', 'public')
+            set_config('account_visibility', 'public')
 
             # Start time
             set_config('start', None)
             set_config('end', None)
             set_config('freeze', None)
-
-            # Challenges cannot be viewed by unregistered users
-            set_config('view_challenges_unregistered', None)
-
-            # Allow/Disallow registration
-            set_config('prevent_registration', None)
 
             # Verify emails
             set_config('verify_emails', None)
@@ -118,10 +113,10 @@ def setup():
     return redirect(url_for('views.static_html'))
 
 
-@views.route('/announcements', methods=['GET'])
-def announcements():
-    announce_list = Announcements.query.order_by(Announcements.id.desc()).all()
-    return render_template('announcements.html', announcements=announce_list)
+@views.route('/notifications', methods=['GET'])
+def notifications():
+    notifications = Notifications.query.order_by(Notifications.id.desc()).all()
+    return render_template('notifications.html', notifications=notifications)
 
 
 @views.route('/settings', methods=['GET'])
@@ -157,16 +152,15 @@ def custom_css():
     return Response(get_config('css'), mimetype='text/css')
 
 
-# Static HTML files
-@views.route("/", defaults={'template': 'index'})
-@views.route("/<path:template>")
-def static_html(template):
+@views.route("/", defaults={'route': 'index'})
+@views.route("/<path:route>")
+def static_html(route):
     """
     Route in charge of routing users to Pages.
-    :param template:
+    :param route:
     :return:
     """
-    page = get_page(template)
+    page = get_page(route)
     if page is None:
         abort(404)
     else:
@@ -178,7 +172,7 @@ def static_html(template):
 
 @views.route('/files', defaults={'path': ''})
 @views.route('/files/<path:path>')
-def file_handler(path):
+def files(path):
     """
     Route in charge of dealing with making sure that CTF challenges are only accessible during the competition.
     :param path:
@@ -188,16 +182,13 @@ def file_handler(path):
     if f.type == 'challenge':
         if current_user.is_admin() is False:
             if not ctftime():
-                if config.view_after_ctf() and ctf_started():
-                    pass
-                else:
-                    abort(403)
-    upload_folder = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-    return send_file(safe_join(upload_folder, f.location))
+                abort(403)
+    uploader = get_uploader()
+    return uploader.download(f.location)
 
 
 @views.route('/themes/<theme>/static/<path:path>')
-def themes_handler(theme, path):
+def themes(theme, path):
     """
     General static file handler
     :param theme:

@@ -7,7 +7,6 @@ from CTFd.schemas.tags import TagSchema
 from CTFd.utils.decorators import (
     during_ctf_time_only,
     require_verified_emails,
-    viewable_without_authentication,
     admins_only
 )
 
@@ -37,8 +36,8 @@ class TagList(Resource):
     @admins_only
     def post(self):
         req = request.get_json()
-        schema = TagSchema(many=True)
-        response = schema.load(req)
+        schema = TagSchema()
+        response = schema.load(req, session=db.session)
 
         if response.errors:
             return {
@@ -46,11 +45,10 @@ class TagList(Resource):
                 'errors': response.errors
             }, 400
 
-        for tag in response.data:
-            db.session.add(tag)
-
+        db.session.add(response.data)
         db.session.commit()
-        # response = schema.dump(tags.data)
+
+        response = schema.dump(response.data)
         db.session.close()
 
         return {

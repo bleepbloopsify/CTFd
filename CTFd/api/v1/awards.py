@@ -7,7 +7,6 @@ from CTFd.utils.dates import ctf_ended
 from CTFd.utils.decorators import (
     during_ctf_time_only,
     require_verified_emails,
-    viewable_without_authentication,
     admins_only
 )
 from sqlalchemy.sql import or_
@@ -17,9 +16,6 @@ awards_namespace = Namespace('awards', description="Endpoint to retrieve Awards"
 
 @awards_namespace.route('')
 class AwardList(Resource):
-    @admins_only
-    def get(self):
-        pass
 
     @admins_only
     def post(self):

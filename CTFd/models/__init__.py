@@ -66,15 +66,20 @@ class SQLiteJson(TypeDecorator):
 JSONLite = types.JSON().with_variant(SQLiteJson, 'sqlite')
 
 
-class Announcements(db.Model):
-    __tablename__ = 'announcements'
+class Notifications(db.Model):
+    __tablename__ = 'notifications'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.Text)
     content = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+
+    user = db.relationship('Users', foreign_keys="Notifications.user_id", lazy='select')
+    team = db.relationship('Teams', foreign_keys="Notifications.team_id", lazy='select')
 
     def __init__(self, *args, **kwargs):
-        super(Announcements, self).__init__(**kwargs)
+        super(Notifications, self).__init__(**kwargs)
 
 
 class Pages(db.Model):
@@ -118,12 +123,15 @@ class Challenges(db.Model):
         'polymorphic_on': type
     }
 
-    def __init__(self, name, description, value, category, type='standard'):
-        self.name = name
-        self.description = description
-        self.value = value
-        self.category = category
-        self.type = type
+    # def __init__(self, name, description, value, category, type='standard'):
+    #     self.name = name
+    #     self.description = description
+    #     self.value = value
+    #     self.category = category
+    #     self.type = type
+
+    def __init__(self, *args, **kwargs):
+        super(Challenges, self).__init__(**kwargs)
 
     def __repr__(self):
         return '<Challenge %r>' % self.name

@@ -9,6 +9,15 @@ function loadchal(id) {
         return e.id == id;
     })[0];
 
+    if (obj.type === 'hidden') {
+        ezal({
+            title: "Challenge Hidden!",
+            body: "You haven't unlocked this challenge yet!",
+            button: "Got it!"
+        });
+        return;
+    }
+
     updateChalWindow(obj);
 }
 
@@ -275,7 +284,7 @@ function loadchals(cb) {
             var chalheader = $("<p>{0}</p>".format(chalinfo.name));
             var chalscore = $("<span>{0}</span>".format(chalinfo.value));
             for (var j = 0; j < chalinfo.tags.length; j++) {
-                var tag = 'tag-' + chalinfo.tags[j].replace(/ /g, '-');
+                var tag = 'tag-' + chalinfo.tags[j].value.replace(/ /g, '-');
                 chalwrap.addClass(tag);
             }
 

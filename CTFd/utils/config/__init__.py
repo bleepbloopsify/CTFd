@@ -34,9 +34,11 @@ def user_mode():
     return get_config('user_mode')
 
 
+# TODO: Not sure if this needs to be removed or if it should stay.
+# It might be best to just lean on the freeze logic.
 @cache.memoize()
 def hide_scores():
-    return get_config('hide_scores') or get_config('workshop_mode')
+    return get_config('hide_scores')
 
 
 @cache.memoize()
@@ -49,16 +51,6 @@ def is_setup():
 
 
 @cache.memoize()
-## TODO: Rename to registration_allowed
-def can_register():
-    return not bool(get_config('prevent_registration'))
-
-
-@cache.memoize()
-def view_after_ctf():
-    return bool(get_config('view_after_ctf'))
-
-
 def is_scoreboard_frozen():
     freeze = get_config('freeze')
 
@@ -73,6 +65,18 @@ def is_scoreboard_frozen():
 @cache.memoize()
 def can_send_mail():
     return mailserver() or mailgun()
+
+
+@cache.memoize()
+def get_mail_provider():
+    if app.config.get('MAIL_SERVER') and app.config.get('MAIL_PORT'):
+        return 'smtp'
+    if get_config('mail_server') and get_config('mail_port'):
+        return 'smtp'
+    if app.config.get('MAILGUN_API_KEY') and app.config.get('MAILGUN_BASE_URL'):
+        return 'mailgun'
+    if get_config('mg_api_key') and get_config('mg_base_url'):
+        return 'mailgun'
 
 
 @cache.memoize()
@@ -93,17 +97,7 @@ def mailserver():
     return False
 
 
-def user_can_view_challenges():
-    # TODO: This function could use a rename or a rewrite
-    config = bool(get_config('view_challenges_unregistered'))
-    verify_emails = bool(get_config('verify_emails'))
-    if config:
-        return authed() or config
-    else:
-        return authed()
-
-
+@cache.memoize()
 def get_themes():
     dir = os.path.join(app.root_path, 'themes')
-    return [name for name in os.listdir(dir)
-            if os.path.isdir(os.path.join(dir, name)) and name != 'admin']
+    return [name for name in os.listdir(dir) if os.path.isdir(os.path.join(dir, name)) and name != 'admin']

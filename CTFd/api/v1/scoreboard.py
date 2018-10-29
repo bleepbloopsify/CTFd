@@ -4,12 +4,15 @@ from CTFd.models import Solves, Awards
 from CTFd.utils.scores import get_standings
 from CTFd.utils import get_config
 from CTFd.utils.dates import unix_time_to_utc, unix_time
+from CTFd.utils.decorators.visibility import check_account_visibility, check_score_visibility
 
 scoreboard_namespace = Namespace('scoreboard', description="Endpoint to retrieve scores")
 
 
 @scoreboard_namespace.route('')
 class ScoreboardList(Resource):
+    @check_account_visibility
+    @check_score_visibility
     def get(self):
         standings = get_standings()
         response = []
@@ -36,7 +39,9 @@ class ScoreboardList(Resource):
 
 @scoreboard_namespace.route('/top/<count>')
 @scoreboard_namespace.param('count', 'How many top teams to return')
-class ScoreboardList(Resource):
+class ScoreboardDetail(Resource):
+    @check_account_visibility
+    @check_score_visibility
     def get(self, count):
         response = {}
 

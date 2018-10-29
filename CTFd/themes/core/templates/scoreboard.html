@@ -46,7 +46,7 @@
 						<tr>
 							<th scope="row" class="text-center">{{ loop.index }}</th>
 							<td>
-								<a href="{{ request.script_root }}{{ generate_account_url(standing.account_id) }}">
+								<a href="{{ generate_account_url(standing.account_id) }}">
 									{{ standing.name | truncate(50) }}
 								</a>
 							</td>
@@ -63,7 +63,7 @@
 {% endblock %}
 
 {% block scripts %}
-	<script src="{{ request.script_root }}/themes/{{ ctf_theme() }}/static/js/vendor/plotly.min.js"></script>
-	<script src="{{ request.script_root }}/themes/{{ ctf_theme() }}/static/js/utils.js"></script>
-	<script src="{{ request.script_root }}/themes/{{ ctf_theme() }}/static/js/scoreboard.js"></script>
+	<script src="{{ url_for('views.themes', theme=get_ctf_theme(), path='js/vendor/plotly.min.js') }}"></script>
+	<script src="{{ url_for('views.themes', theme=get_ctf_theme(), path='js/utils.js') }}"></script>
+	<script src="{{ url_for('views.themes', theme=get_ctf_theme(), path='js/scoreboard.js') }}"></script>
 {% endblock %}

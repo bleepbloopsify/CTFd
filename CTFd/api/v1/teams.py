@@ -1,9 +1,13 @@
-from flask import session, request
+from flask import session, request, abort
 from flask_restplus import Namespace, Resource
 from CTFd.models import db, Teams, Solves, Awards, Fails
 from CTFd.schemas.teams import TeamSchema
 from CTFd.schemas.submissions import SubmissionSchema
-from CTFd.schemas.awards import AwardSchema
+from CTFd.utils.decorators.visibility import check_account_visibility, check_score_visibility
+from CTFd.utils.config.visibility import (
+    accounts_visible,
+    scores_visible
+)
 from CTFd.utils.user import (
     get_current_team,
     is_admin
@@ -12,14 +16,13 @@ from CTFd.utils.decorators import (
     authed_only,
     admins_only,
 )
-from CTFd.utils.dates import unix_time_to_utc, unix_time
-from CTFd.utils import get_config
 
 teams_namespace = Namespace('teams', description="Endpoint to retrieve Teams")
 
 
 @teams_namespace.route('')
 class TeamList(Resource):
+    @check_account_visibility
     def get(self):
         teams = Teams.query.filter_by(banned=False)
         view = list(TeamSchema.views.get(session.get('type')))
@@ -65,6 +68,7 @@ class TeamList(Resource):
 @teams_namespace.route('/<team_id>')
 @teams_namespace.param('team_id', "Team ID")
 class TeamPublic(Resource):
+    @check_account_visibility
     def get(self, team_id):
         team = Teams.query.filter_by(id=team_id).first_or_404()
 
@@ -156,7 +160,8 @@ class TeamPrivate(Resource):
             }, 400
 
         db.session.commit()
-        # response = TeamSchema('self').dump(response.data)
+
+        response = TeamSchema('self').dump(response.data)
         db.session.close()
 
         return {
@@ -172,6 +177,8 @@ class TeamSolves(Resource):
         if team_id == 'me':
             team = get_current_team()
         else:
+            if accounts_visible() is False or scores_visible() is False:
+                abort(404)
             team = Teams.query.filter_by(id=team_id).first_or_404()
 
         solves = team.get_solves(
@@ -201,6 +208,8 @@ class TeamFails(Resource):
         if team_id == 'me':
             team = get_current_team()
         else:
+            if accounts_visible() is False or scores_visible() is False:
+                abort(404)
             team = Teams.query.filter_by(id=team_id).first_or_404()
 
         fails = team.get_fails(
@@ -231,6 +240,8 @@ class TeamAwards(Resource):
         if team_id == 'me':
             team = get_current_team()
         else:
+            if accounts_visible() is False or scores_visible() is False:
+                abort(404)
             team = Teams.query.filter_by(id=team_id).first_or_404()
 
         awards = team.get_awards(

@@ -7,7 +7,6 @@ from CTFd.utils.dates import ctf_ended
 from CTFd.utils.decorators import (
     during_ctf_time_only,
     require_verified_emails,
-    viewable_without_authentication,
     admins_only
 )
 from sqlalchemy.sql import or_
@@ -48,7 +47,8 @@ class FlagList(Resource):
 
         db.session.add(response.data)
         db.session.commit()
-        # response = schema.dump(response.data)
+
+        response = schema.dump(response.data)
         db.session.close()
 
         return {
@@ -92,7 +92,8 @@ class Flag(Resource):
     def get(self, flag_id):
         # TODO: Perhaps flag plugins should be similar to challenges and have CRUD methods
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
-        response = FlagSchema().dump(flag)
+        schema = FlagSchema()
+        response = schema.dump(flag)
 
         if response.errors:
             return {
@@ -101,9 +102,10 @@ class Flag(Resource):
             }, 400
 
         response.data['templates'] = get_flag_class(flag.type).templates
+
         return {
             'success': True,
-            'data': response
+            'data': response.data
         }
 
     @admins_only
@@ -133,6 +135,8 @@ class Flag(Resource):
             }, 400
 
         db.session.commit()
+
+        response = schema.dump(response.data)
         db.session.close()
 
         return {
