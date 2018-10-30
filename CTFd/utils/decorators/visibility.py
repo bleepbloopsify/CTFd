@@ -28,7 +28,7 @@ def check_score_visibility(f):
 def check_challenge_visibility(f):
     @functools.wraps(f)
     def _check_challenge_visibility(*args, **kwargs):
-        v = get_config('challenge_visibility')
+        v = get_config('challenge_visibility') # if v is none this will error out several pages
         if v == 'public':
             return f(*args, **kwargs)
 
