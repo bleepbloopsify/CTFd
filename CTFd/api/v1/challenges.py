@@ -17,7 +17,11 @@ from CTFd.utils.decorators import (
     require_verified_emails,
     admins_only
 )
-from CTFd.utils.decorators.visibility import check_challenge_visibility
+from CTFd.utils.decorators.visibility import (
+    check_challenge_visibility,
+    check_score_visibility
+)
+from CTFd.utils.config.visibility import scores_visible, accounts_visible
 from CTFd.utils.user import get_current_user
 from CTFd.utils.modes import get_model
 from CTFd.schemas.tags import TagSchema
@@ -34,18 +38,22 @@ class ChallengeList(Resource):
     @during_ctf_time_only
     @require_verified_emails
     def get(self):
+        # This can return None (unauth) if visibility is set to public
         user = get_current_user()
 
         challenges = Challenges.query.filter(
             and_(Challenges.state != 'hidden', Challenges.state != 'locked')
         ).order_by(Challenges.value).all()
 
-        solve_ids = Solves.query\
-            .with_entities(Solves.challenge_id)\
-            .filter_by(account_id=user.account_id)\
-            .order_by(Solves.challenge_id.asc())\
-            .all()
-        solve_ids = set([value for value, in solve_ids])
+        if user:
+            solve_ids = Solves.query\
+                .with_entities(Solves.challenge_id)\
+                .filter_by(account_id=user.account_id)\
+                .order_by(Solves.challenge_id.asc())\
+                .all()
+            solve_ids = set([value for value, in solve_ids])
+        else:
+            solve_ids = set()
 
         response = []
         tag_schema = TagSchema(view='user', many=True)
@@ -149,17 +157,18 @@ class Challenge(Resource):
 
         Model = get_model()
 
-        # TODO: Hide solves if config says so
-
-        solves = Solves.query\
-            .join(Model, Solves.account_id == Model.id)\
-            .filter(Solves.challenge_id == chal.id, Model.banned == False, Model.hidden == False)\
-            .count()
+        if scores_visible() is True and accounts_visible() is True:
+            solves = Solves.query\
+                .join(Model, Solves.account_id == Model.id)\
+                .filter(Solves.challenge_id == chal.id, Model.banned == False, Model.hidden == False)\
+                .count()
+            response['solves'] = solves
+        else:
+            response['solves'] = None
 
         response['files'] = files
         response['tags'] = tags
         response['hints'] = hints
-        response['solves'] = solves
 
         db.session.close()
         return {
@@ -193,11 +202,11 @@ class Challenge(Resource):
 @challenges_namespace.param('id', 'A Challenge ID')
 class ChallengeSolves(Resource):
     @check_challenge_visibility
+    @check_score_visibility
     @during_ctf_time_only
     @require_verified_emails
     def get(self, challenge_id):
         response = []
-        # TODO: Hide scores and other configs
         Model = get_model()
 
         solves = Solves.query.join(Model, Solves.account_id == Model.id)\
