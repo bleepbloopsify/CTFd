@@ -1,3 +1,4 @@
+from CTFd.utils import string_types
 from passlib.hash import bcrypt_sha256
 import hashlib
 
@@ -9,6 +10,7 @@ def hash_password(p):
 def check_password(p, hash):
     return bcrypt_sha256.verify(p.encode('utf-8'), hash)
 
-
 def sha256(p):
-    return hashlib.sha256(p.encode('utf-8')).hexdigest()
+    if isinstance(p, string_types):
+        p = p.encode('utf-8')
+    return hashlib.sha256(p).hexdigest()
