@@ -73,3 +73,5 @@ CTFd/uploads
 # IDE configurations
 .vscode/
 
+# plugin generated files
+.ctfd-challenge-api-key
