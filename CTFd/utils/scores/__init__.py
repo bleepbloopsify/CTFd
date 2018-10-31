@@ -6,7 +6,7 @@ from CTFd.utils import get_config
 from CTFd.utils.modes import get_model
 
 
-def get_standings(count=None, admin=False):
+def get_standings(count=None, admin=False, filters=[]):
     """
     Get standings as a list of tuples containing account_id, name, and score e.g. [(account_id, team_name, score)].
 
@@ -24,6 +24,7 @@ def get_standings(count=None, admin=False):
         db.func.max(Solves.date).label('date')
     ).join(Challenges) \
         .filter(Challenges.value != 0) \
+        .filter(*filters) \
         .group_by(Solves.account_id)
 
     awards = db.session.query(
@@ -33,6 +34,7 @@ def get_standings(count=None, admin=False):
         db.func.max(Awards.date).label('date')
     ) \
         .filter(Awards.value != 0) \
+        .filter(*filters) \
         .group_by(Awards.account_id)
 
     """
@@ -71,6 +73,7 @@ def get_standings(count=None, admin=False):
         standings_query = db.session.query(
             Model.id.label('account_id'),
             Model.name.label('name'),
+            Model.region.label('region'),
             Model.hidden,
             Model.banned,
             sumscores.columns.score
@@ -81,11 +84,18 @@ def get_standings(count=None, admin=False):
         standings_query = db.session.query(
             Model.id.label('account_id'),
             Model.name.label('name'),
+            Model.region.label('region'),
             sumscores.columns.score
         ) \
             .join(sumscores, Model.id == sumscores.columns.account_id) \
             .filter(Model.banned == False, Model.hidden == False) \
             .order_by(sumscores.columns.score.desc(), sumscores.columns.id)
+
+    """
+    Allow for adding custom filters to standings here
+    """
+    stadings_query = standings_query.filter(*filters)
+
 
     """
     Only select a certain amount of users if asked.

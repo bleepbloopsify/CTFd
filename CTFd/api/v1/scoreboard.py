@@ -1,8 +1,10 @@
+from flask import request
 from flask_restplus import Namespace, Resource
 
-from CTFd.models import Solves, Awards
+from CTFd.models import Solves, Awards, Teams
 from CTFd.utils.scores import get_standings
 from CTFd.utils import get_config
+from CTFd.utils.modes import get_model
 from CTFd.utils.dates import unix_time_to_utc, unix_time
 from CTFd.utils.decorators.visibility import check_account_visibility, check_score_visibility
 
@@ -14,10 +16,13 @@ class ScoreboardList(Resource):
     @check_account_visibility
     @check_score_visibility
     def get(self):
-        standings = get_standings()
+        filters = []
+        region = request.args.get('region', '')
+        Model = get_model()
+        if region:
+            filters.append(Model.region == region)
+        standings = get_standings(filters=filters)
         response = []
-
-        print(standings)
 
         for i, x in enumerate(standings):
             response.append(
@@ -25,7 +30,8 @@ class ScoreboardList(Resource):
                     'pos': i + 1,
                     'id': x.account_id,
                     'team': x.name,
-                    'score': int(x.score)
+                    'score': int(x.score),
+                    'region': x.region,
                 }
             )
 
