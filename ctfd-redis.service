@@ -6,8 +6,8 @@ After=network.target
 User=redis
 Group=redis
 WorkingDirectory=/opt/ctfd/
-ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
-ExecStop=/usr/local/bin/redis-cli shutdown
+ExecStart=/usr/bin/redis-server /etc/redis/redis.conf
+ExecStop=/usr/bin/redis-cli shutdown
 Restart=always
 
 [Install]
