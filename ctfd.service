@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve CTFd
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/ctfd/
+Environment=REDIS_URL=redis://localhost:6379
+ExecStart=/opt/ctfd/env/bin/gunicorn --worker-class gevent --workers 4 --bind unix:ctfd.sock -m 007 serve:app
+
+[Install]
+WantedBy=multi-user.target
