@@ -29,6 +29,7 @@ def challenges_detail(challenge_id):
         challenge_class.blueprint.open_resource(
             os.path.join(static_path, 'update.j2')
         ).read().decode('utf-8'),
+        # Python 3
         challenge=challenge
     )
 
