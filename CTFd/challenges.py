@@ -22,7 +22,6 @@ challenges = Blueprint('challenges', __name__)
 @check_challenge_visibility
 @require_team
 def listing():
-    print('hello')
     infos = []
     errors = []
     start = get_config('start') or 0
