@@ -6,6 +6,7 @@ from sqlalchemy.sql.expression import union_all
 from sqlalchemy.types import JSON, NullType
 from sqlalchemy.orm import validates, column_property
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.sql import or_, and_, any_
 from CTFd.utils.crypto import hash_password
 from CTFd.cache import cache
 import datetime
@@ -29,41 +30,41 @@ def get_class_by_tablename(tablename):
     return None
 
 
-# class SQLiteJson(TypeDecorator):
-#     impl = String
-#
-#     class Comparator(String.Comparator):
-#         def __getitem__(self, index):
-#             if isinstance(index, tuple):
-#                 index = "$%s" % (
-#                     "".join([
-#                         "[%s]" % elem if isinstance(elem, int)
-#                         else '."%s"' % elem for elem in index
-#                     ])
-#                 )
-#             elif isinstance(index, int):
-#                 index = "$[%s]" % index
-#             else:
-#                 index = '$."%s"' % index
-#
-#             # json_extract does not appear to return JSON sub-elements
-#             # which is weird.
-#             return func.json_extract(self.expr, index, type_=NullType)
-#
-#     comparator_factory = Comparator
-#
-#     def process_bind_param(self, value, dialect):
-#         if value is not None:
-#             value = json.dumps(value)
-#         return value
-#
-#     def process_result_value(self, value, dialect):
-#         if value is not None:
-#             value = json.loads(value)
-#         return value
-#
-#
-# JSON = types.JSON().with_variant(SQLiteJson, 'sqlite')
+class SQLiteJson(TypeDecorator):
+    impl = String
+
+    class Comparator(String.Comparator):
+        def __getitem__(self, index):
+            if isinstance(index, tuple):
+                index = "$%s" % (
+                    "".join([
+                        "[%s]" % elem if isinstance(elem, int)
+                        else '."%s"' % elem for elem in index
+                    ])
+                )
+            elif isinstance(index, int):
+                index = "$[%s]" % index
+            else:
+                index = '$."%s"' % index
+
+            # json_extract does not appear to return JSON sub-elements
+            # which is weird.
+            return func.json_extract(self.expr, index, type_=NullType)
+
+    comparator_factory = Comparator
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
+
+
+JSON = types.JSON().with_variant(SQLiteJson, 'sqlite')
 
 
 class Notifications(db.Model):
@@ -360,7 +361,6 @@ class Users(db.Model):
         score = db.func.sum(Challenges.value).label('score')
         user = db.session.query(
             Solves.user_id,
-            Solves.challenge_id,
             score
         ) \
             .join(Users, Solves.user_id == Users.id) \
