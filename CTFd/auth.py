@@ -39,7 +39,7 @@ def confirm(data=None):
             return render_template('confirm.html', errors=['Your confirmation token is invalid'])
         team = Users.query.filter_by(email=user_email).first_or_404()
         team.verified = True
-        log('registrations', format="[{date}] {ip} -  successful password reset for {username}")
+        log('registrations', format="[{date}] {ip} -  successful password reset for {name}")
         db.session.commit()
         db.session.close()
         if current_user.authed():
@@ -59,7 +59,7 @@ def confirm(data=None):
                 return redirect(url_for('views.profile'))
             else:
                 email.verify_email_address(team.email)
-                log('registrations', format="[{date}] {ip} - {username} initiated a confirmation email resend")
+                log('registrations', format="[{date}] {ip} - {name} initiated a confirmation email resend")
             return render_template('confirm.html', team=team, infos=['Your confirmation email has been resent!'])
         elif request.method == "GET":
             # User has been directed to the confirm page
@@ -89,13 +89,13 @@ def reset_password(data=None):
             team = Users.query.filter_by(name=name).first_or_404()
             team.password = bcrypt_sha256.encrypt(request.form['password'].strip())
             db.session.commit()
-            log('logins', format="[{date}] {ip} -  successful password reset for {username}")
+            log('logins', format="[{date}] {ip} -  successful password reset for {name}")
             db.session.close()
             return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
-        email = request.form['email'].strip()
-        team = Users.query.filter_by(email=email).first()
+        email_address = request.form['email'].strip()
+        team = Users.query.filter_by(email=email_address).first()
 
         errors = []
 
@@ -111,7 +111,7 @@ def reset_password(data=None):
                 errors=['If that account exists you will receive an email, please check your inbox']
             )
 
-        email.forgot_password(email, team.name)
+        email.forgot_password(email_address, team.name)
 
         return render_template(
             'reset_password.html',
@@ -187,12 +187,12 @@ def register():
 
                 if config.can_send_mail() and get_config('verify_emails'):  # Confirming users is enabled and we can send email.
                     log('registrations', format="[{date}] {ip} - {name} registered (UNCONFIRMED) with {email}")
-                    email_address.verify_email_address(user.email)
+                    email.verify_email_address(user.email)
                     db.session.close()
                     return redirect(url_for('auth.confirm'))
                 else:  # Don't care about confirming users
                     if config.can_send_mail():  # We want to notify the user that they have registered.
-                        email_address.sendmail(
+                        email.sendmail(
                             request.form['email'],
                             "You've successfully registered for {}".format(get_config('ctf_name'))
                         )

@@ -79,11 +79,9 @@ def login_as_user(app, name="user", password="password"):
 
 
 def get_scores(user):
-    scores = user.get('/scores')
-    print(scores.get_data(as_text=True))
-    scores = json.loads(scores.get_data(as_text=True))
-    print(scores)
-    return scores['standings']
+    r = user.get('/api/v1/scoreboard')
+    scores = r.get_json()
+    return scores['data']
 
 
 def gen_challenge(db, name='chal_name', description='chal_description', value=100, category='chal_category', type='standard', state='visible', **kwargs):
@@ -93,8 +91,8 @@ def gen_challenge(db, name='chal_name', description='chal_description', value=10
     return chal
 
 
-def gen_award(db, team_id, name="award_name", value=100):
-    award = Awards(team_id=team_id, name=name, value=value)
+def gen_award(db, user_id, team_id=None, name="award_name", value=100):
+    award = Awards(user_id=user_id, team_id=team_id, name=name, value=value)
     award.date = datetime.datetime.utcnow()
     db.session.add(award)
     db.session.commit()
@@ -145,16 +143,16 @@ def gen_hint(db, challenge_id, content="This is a hint", cost=0, type="standard"
     return hint
 
 
-def gen_solve(db, team_id, challenge_id, ip='127.0.0.1', flag='rightkey', **kwargs):
-    solve = Solves(team_id=team_id, challenge_id=challenge_id, ip=ip, flag=flag, **kwargs)
+def gen_solve(db, user_id, team_id=None, challenge_id=None, ip='127.0.0.1', provided='rightkey', **kwargs):
+    solve = Solves(user_id=user_id, team_id=team_id, challenge_id=challenge_id, ip=ip, provided=provided, **kwargs)
     solve.date = datetime.datetime.utcnow()
     db.session.add(solve)
     db.session.commit()
     return solve
 
 
-def gen_wrongkey(db, team_id, challenge_id, ip='127.0.0.1', content='wrongkey', **kwargs):
-    wrongkey = Fails(team_id=team_id, challenge_id=challenge_id, ip=ip, content=content)
+def gen_wrongkey(db, user_id, team_id=None, challenge_id=None, ip='127.0.0.1', content='wrongkey', **kwargs):
+    wrongkey = Fails(user_id=user_id, team_id=team_id, challenge_id=challenge_id, ip=ip, content=content)
     wrongkey.date = datetime.datetime.utcnow()
     db.session.add(wrongkey)
     db.session.commit()
@@ -169,8 +167,8 @@ def gen_tracking(db, ip, team, **kwargs):
     return tracking
 
 
-def gen_page(db, title, route, html, draft=False, auth_required=False, **kwargs):
-    page = Pages(title=title, route=route, html=html, draft=draft, auth_required=auth_required, **kwargs)
+def gen_page(db, title, route, content, draft=False, auth_required=False, **kwargs):
+    page = Pages(title=title, route=route, content=content, draft=draft, auth_required=auth_required, **kwargs)
     db.session.add(page)
     db.session.commit()
     return page

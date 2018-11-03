@@ -24,6 +24,7 @@ class ScoreboardList(Resource):
         standings = get_standings(filters=filters)
         response = []
 
+        # TODO: Change this response
         for i, x in enumerate(standings):
             response.append(
                 {
