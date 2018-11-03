@@ -1,11 +1,13 @@
 from sqlalchemy.sql.expression import union_all
 
+from CTFd.cache import cache
 from CTFd.models import db, Solves, Awards, Challenges
 from CTFd.utils.dates import unix_time_to_utc
 from CTFd.utils import get_config
 from CTFd.utils.modes import get_model
 
 
+@cache.memoize(timeout=60)
 def get_standings(count=None, admin=False, filters=[]):
     """
     Get standings as a list of tuples containing account_id, name, and score e.g. [(account_id, team_name, score)].
@@ -72,6 +74,7 @@ def get_standings(count=None, admin=False, filters=[]):
     if admin:
         standings_query = db.session.query(
             Model.id.label('account_id'),
+            Model.oauth_id.label('oauth_id'),
             Model.name.label('name'),
             Model.region.label('region'),
             Model.hidden,
@@ -83,6 +86,7 @@ def get_standings(count=None, admin=False, filters=[]):
     else:
         standings_query = db.session.query(
             Model.id.label('account_id'),
+            Model.oauth_id.label('oauth_id'),
             Model.name.label('name'),
             Model.region.label('region'),
             sumscores.columns.score

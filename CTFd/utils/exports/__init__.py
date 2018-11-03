@@ -1,5 +1,5 @@
 from CTFd.utils import get_app_config, get_config, set_config
-from CTFd.utils.migrations import get_current_revision
+from CTFd.utils.migrations import get_current_revision, create_database, drop_database, upgrade, stamp
 from CTFd.models import db, get_class_by_tablename
 from datafreeze.format import SERIALIZERS
 from flask import current_app as app
@@ -50,6 +50,8 @@ SERIALIZERS['ctfd'] = CTFdSerializer  # Load the custom serializer
 
 
 def export_ctf():
+    # TODO: For some unknown reason dataset is only able to see alembic_version during tests.
+    # Even using a real sqlite database. This makes this test impossible to pass in sqlite.
     db = dataset.connect(get_app_config('SQLALCHEMY_DATABASE_URI'))
 
     # Backup database
@@ -93,12 +95,19 @@ def export_ctf():
     return backup
 
 
-def import_ctf(backup):
+def import_ctf(backup, erase=True):
     if not zipfile.is_zipfile(backup):
         raise zipfile.BadZipfile
 
+    if erase:
+        drop_database()
+        create_database()
+        # We explicitly do not want to upgrade or stamp here.
+        # The import will have this information.
+
     side_db = dataset.connect(get_app_config('SQLALCHEMY_DATABASE_URI'))
     sqlite = get_app_config('SQLALCHEMY_DATABASE_URI').startswith('sqlite')
+    postgres = get_app_config('SQLALCHEMY_DATABASE_URI').startswith('postgres')
 
     backup = zipfile.ZipFile(backup)
 
@@ -113,18 +122,54 @@ def import_ctf(backup):
             if info.file_size > max_content_length:
                 raise zipfile.LargeZipFile
 
+    first = [
+        'db/teams.json',
+        'db/users.json',
+        'db/admins.json',
+        'db/challenges.json',
+        'db/dynamic_challenge.json',
+
+        'db/flags.json',
+        'db/hints.json',
+        'db/unlocks.json',
+        'db/awards.json',
+        'db/tags.json',
+
+        'db/submissions.json',
+        'db/solves.json',
+
+        'db/files.json',
+
+        'db/notifications.json',
+        'db/pages.json',
+
+        'db/tracking.json',
+        'db/config.json',
+    ]
+
+    for item in first:
+        if item in members:
+            members.remove(item)
+
+    members = first + members
+
+    alembic_version = json.loads(backup.open('db/alembic_version.json').read())["results"][0]["version_num"]
+    upgrade(revision=alembic_version)
+    members.remove('db/alembic_version.json')
+
     for member in members:
         if member.startswith('db/'):
             table_name = member[3:-5]
-            data = backup.open(member).read()
+
+            try:
+                # Try to open a file but skip if it doesn't exist.
+                data = backup.open(member).read()
+            except KeyError:
+                continue
+
             if data:
                 table = side_db[table_name]
 
-                if sqlite:
-                    db.session.execute('DELETE FROM ' + table_name)
-                else:
-                    db.session.execute('TRUNCATE TABLE '+table_name)
-                db.session.commit()
                 saved = json.loads(data)
                 for entry in saved['results']:
                     # This is a hack to get SQLite to properly accept datetime values from dataset
@@ -141,6 +186,16 @@ def import_ctf(backup):
                                     entry[k] = datetime.datetime.strptime(v, '%Y-%m-%dT%H:%M:%S')
                                     continue
                     table.insert(entry)
+                    db.session.commit()
+                if postgres:
+                    # TODO: This should be sanitized even though exports are basically SQL dumps
+                    # Databases are so hard
+                    # https://stackoverflow.com/a/37972960
+                    side_db.engine.execute(
+                        "SELECT setval(pg_get_serial_sequence('{table_name}', 'id'), coalesce(max(id)+1,1), false) FROM {table_name}".format(
+                            table_name=table_name
+                        )
+                    )
 
     # Extracting files
     files = [f for f in backup.namelist() if f.startswith('uploads/')]
