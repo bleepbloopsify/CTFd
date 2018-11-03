@@ -142,7 +142,7 @@ class Hints(db.Model):
     __tablename__ = 'hints'
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(80), default='standard')
-    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id'))
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id', ondelete='CASCADE', onupdate='CASCADE'))
     content = db.Column(db.Text)
     cost = db.Column(db.Integer, default=0)
     requirements = db.Column(JSON)
@@ -174,8 +174,8 @@ class Hints(db.Model):
 class Awards(db.Model):
     __tablename__ = 'awards'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE', onupdate='CASCADE'))
     name = db.Column(db.String(80))
     description = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -204,7 +204,7 @@ class Awards(db.Model):
 class Tags(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True)
-    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id'))
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id', ondelete='CASCADE', onupdate='CASCADE'))
     value = db.Column(db.String(80))
 
     def __init__(self, *args, **kwargs):
@@ -233,7 +233,7 @@ class ChallengeFiles(Files):
     __mapper_args__ = {
         'polymorphic_identity': 'challenge'
     }
-    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id'))
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id', ondelete='CASCADE', onupdate='CASCADE'))
 
     def __init__(self, *args, **kwargs):
         super(ChallengeFiles, self).__init__(**kwargs)
@@ -243,7 +243,7 @@ class PageFiles(Files):
     __mapper_args__ = {
         'polymorphic_identity': 'page'
     }
-    page_id = db.Column(db.Integer, db.ForeignKey('pages.id'))
+    page_id = db.Column(db.Integer, db.ForeignKey('pages.id', ondelete='CASCADE', onupdate='CASCADE'))
 
     def __init__(self, *args, **kwargs):
         super(PageFiles, self).__init__(**kwargs)
@@ -252,7 +252,7 @@ class PageFiles(Files):
 class Flags(db.Model):
     __tablename__ = 'flags'
     id = db.Column(db.Integer, primary_key=True)
-    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id'))
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id', ondelete='CASCADE', onupdate='CASCADE'))
     type = db.Column(db.String(80))
     content = db.Column(db.Text)
     data = db.Column(db.Text)
@@ -292,7 +292,7 @@ class Users(db.Model):
     verified = db.Column(db.Boolean, default=False)
 
     # Relationship for Teams
-    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE', onupdate='CASCADE'))
 
     created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -458,7 +458,7 @@ class Users(db.Model):
 
 class Admins(Users):
     __tablename__ = 'admins'
-    id = db.Column(None, db.ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    id = db.Column(None, db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'admin'
@@ -633,9 +633,9 @@ class Teams(db.Model):
 class Submissions(db.Model):
     __tablename__ = 'submissions'
     id = db.Column(db.Integer, primary_key=True)
-    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id', ondelete='CASCADE'))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'))
-    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE'))
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id', ondelete='CASCADE', onupdate='CASCADE'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE', onupdate='CASCADE'))
     ip = db.Column(db.String(46))
     provided = db.Column(db.Text)
     type = db.Column(db.String(32))
@@ -685,11 +685,11 @@ class Solves(Submissions):
         db.UniqueConstraint('challenge_id', 'team_id'),
         {}
     )
-    id = db.Column(None, db.ForeignKey('submissions.id', ondelete='CASCADE'), primary_key=True)
-    challenge_id = column_property(db.Column(db.Integer, db.ForeignKey('challenges.id', ondelete='CASCADE')),
+    id = db.Column(None, db.ForeignKey('submissions.id', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
+    challenge_id = column_property(db.Column(db.Integer, db.ForeignKey('challenges.id', ondelete='CASCADE', onupdate='CASCADE')),
                                    Submissions.challenge_id)
-    user_id = column_property(db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE')), Submissions.user_id)
-    team_id = column_property(db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE')), Submissions.team_id)
+    user_id = column_property(db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE')), Submissions.user_id)
+    team_id = column_property(db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE', onupdate='CASCADE')), Submissions.team_id)
 
     user = db.relationship('Users', foreign_keys="Solves.user_id", lazy='select')
     team = db.relationship('Teams', foreign_keys="Solves.team_id", lazy='select')
@@ -709,8 +709,8 @@ class Fails(Submissions):
 class Unlocks(db.Model):
     __tablename__ = 'unlocks'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE', onupdate='CASCADE'))
     target = db.Column(db.Integer)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     type = db.Column(db.String(32))
@@ -742,7 +742,7 @@ class Tracking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(32))
     ip = db.Column(db.String(46))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     user = db.relationship('Users', foreign_keys="Tracking.user_id", lazy='select')
