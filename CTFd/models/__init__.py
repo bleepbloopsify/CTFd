@@ -487,7 +487,7 @@ class Teams(db.Model):
 
     created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
-    region = db.Column(db.String(80))
+    region = db.Column(db.String(80), default='--')
 
     def __init__(self, **kwargs):
         super(Teams, self).__init__(**kwargs)

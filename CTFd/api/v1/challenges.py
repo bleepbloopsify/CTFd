@@ -39,6 +39,7 @@ from CTFd.utils.user import get_current_user
 from CTFd.plugins.challenges import get_chal_class
 from CTFd.utils.dates import ctf_started, ctf_ended, ctf_paused, ctftime
 from CTFd.utils.logging import log
+from CTFd.schemas.submissions import SubmissionSchema
 
 challenges_namespace = Namespace('challenges',
                                  description="Endpoint to retrieve Challenges")
@@ -91,6 +92,33 @@ class ChallengeList(Resource):
                     # Fallthrough to continue
                     continue
 
+            print(challenge.vm_templates)
+            print(response)
+            vms = []
+            if authed():
+                for vmt in challenge.vm_templates:
+                    print(vmt)
+                    vm = next((v for v in vmt.vms if v.team_id == session['id']), None)
+
+                    status = 'stopped'
+
+                    if vm is not None:
+                        status = app.vm_mgr.get_status(vm)
+
+                        if status is None:
+                            db.session.delete(vm)
+                            db.session.commit()
+                            vm = None
+
+                    vms.append({
+                        'tid': vmt.id,
+                        'description': vmt.description,
+                        'status': status,
+                        'ip': app.vm_mgr.get_ip(vm) if vm else None,
+                        'vnc_host_port': app.vm_mgr.get_vnc_ip_port(vm) if vm else None,
+                        'vnc_password': vm.vnc_password if vm and app.vm_mgr.get_status(vm) == 'running' else None,
+                    })
+
             challenge_type = get_chal_class(challenge.type)
             response.append({
                 'id': challenge.id,
@@ -101,6 +129,7 @@ class ChallengeList(Resource):
                 'tags': tag_schema.dump(challenge.tags).data,
                 'template': challenge_type.templates['view'],
                 'script': challenge_type.scripts['view'],
+                'vms': vms,
             })
 
         db.session.close()
