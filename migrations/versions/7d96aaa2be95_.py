@@ -61,6 +61,7 @@ def upgrade():
     sa.Column('hidden', sa.Boolean(), nullable=True),
     sa.Column('banned', sa.Boolean(), nullable=True),
     sa.Column('created', sa.DateTime(), nullable=True),
+    sa.Column('region', sa.String(length=80), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('name'),
