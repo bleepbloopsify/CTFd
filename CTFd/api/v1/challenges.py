@@ -92,12 +92,9 @@ class ChallengeList(Resource):
                     # Fallthrough to continue
                     continue
 
-            print(challenge.vm_templates)
-            print(response)
             vms = []
             if authed():
                 for vmt in challenge.vm_templates:
-                    print(vmt)
                     vm = next((v for v in vmt.vms if v.team_id == session['id']), None)
 
                     status = 'stopped'
