@@ -10,12 +10,14 @@ from CTFd.utils.config.visibility import (
 )
 from CTFd.utils.user import (
     get_current_team,
-    is_admin
+    is_admin,
+    authed
 )
 from CTFd.utils.decorators import (
     authed_only,
     admins_only,
 )
+import copy
 
 teams_namespace = Namespace('teams', description="Endpoint to retrieve Teams")
 
@@ -25,7 +27,9 @@ class TeamList(Resource):
     @check_account_visibility
     def get(self):
         teams = Teams.query.filter_by(banned=False)
-        view = list(TeamSchema.views.get(session.get('type')))
+        view = copy.deepcopy(TeamSchema.views.get(
+            session.get('type', 'user')
+        ))
         view.remove('members')
         response = TeamSchema(view=view, many=True).dump(teams)
 
@@ -173,8 +177,11 @@ class TeamPrivate(Resource):
 @teams_namespace.route('/<team_id>/solves')
 @teams_namespace.param('team_id', "Team ID or 'me'")
 class TeamSolves(Resource):
+
     def get(self, team_id):
         if team_id == 'me':
+            if not authed():
+                abort(403)
             team = get_current_team()
         else:
             if accounts_visible() is False or scores_visible() is False:
@@ -204,8 +211,11 @@ class TeamSolves(Resource):
 @teams_namespace.route('/<team_id>/fails')
 @teams_namespace.param('team_id', "Team ID or 'me'")
 class TeamFails(Resource):
+
     def get(self, team_id):
         if team_id == 'me':
+            if not authed():
+                abort(403)
             team = get_current_team()
         else:
             if accounts_visible() is False or scores_visible() is False:
@@ -236,8 +246,11 @@ class TeamFails(Resource):
 @teams_namespace.route('/<team_id>/awards')
 @teams_namespace.param('team_id', "Team ID or 'me'")
 class TeamAwards(Resource):
+
     def get(self, team_id):
         if team_id == 'me':
+            if not authed():
+                abort(403)
             team = get_current_team()
         else:
             if accounts_visible() is False or scores_visible() is False:

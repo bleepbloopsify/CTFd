@@ -16,7 +16,7 @@
 	</div>
 	<div class="form-group">
 		<label for="website">Website</label>
-		<input type="text" class="form-control" name="website" id="website"
+		<input type="url" class="form-control" name="website" id="website"
 			   {% if team is defined and team.website %}value="{{ team.website }}"{% endif %}>
 	</div>
 	<div class="form-group">
@@ -47,7 +47,7 @@
 		</div>
 	</div>
 	<div id="results">
-		{# TODO: Surface error messages #}
+
 	</div>
 	<button id="update-team" type="submit" class="btn btn-primary btn-outlined float-right modal-action">
 		Submit

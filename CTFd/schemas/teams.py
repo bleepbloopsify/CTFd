@@ -50,8 +50,13 @@ class TeamSchema(ma.ModelSchema):
         # Admins should be able to patch anyone but they cannot cause a collision.
         if is_admin():
             team_id = int(data.get('id', 0))
-            if existing_team.id != team_id:
-                raise ValidationError('Team name has already been taken')
+            if team_id:
+                if existing_team.id != team_id:
+                    raise ValidationError('Team name has already been taken', field_names=['name'])
+            else:
+                # If there's no Team ID it means that the admin is creating a team with no ID.
+                if existing_team:
+                    raise ValidationError('Team name has already been taken', field_names=['name'])
         else:
             current_team = get_current_team()
             # We need to allow teams to edit themselves and allow the "conflict"
@@ -59,7 +64,7 @@ class TeamSchema(ma.ModelSchema):
                 return data
             else:
                 if existing_team:
-                    raise ValidationError('Team name has already been taken')
+                    raise ValidationError('Team name has already been taken', field_names=['name'])
 
     @pre_load
     def validate_email(self, data):
