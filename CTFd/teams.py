@@ -1,7 +1,7 @@
 from flask import current_app as app, render_template, request, redirect, abort, jsonify, url_for, session, Blueprint, \
     Response, send_file
 from CTFd.models import db, Users, Teams, Solves, Awards, Files, Pages, Tracking
-from CTFd.utils.decorators import authed_only
+from CTFd.utils.decorators import authed_only, admins_only
 from CTFd.utils.decorators.modes import require_team_mode
 from CTFd.utils.modes import USERS_MODE
 from CTFd.utils import config, get_config, set_config
@@ -60,6 +60,7 @@ def join():
 
 @teams.route('/teams/new', methods=['GET', 'POST'])
 @authed_only
+@admins_only # this is because CSAW CTF 18 Finals uses pre-created teams
 @require_team_mode
 def new():
     if request.method == 'GET':
