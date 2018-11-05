@@ -17,6 +17,9 @@ def ctftime():
     if team.region is None:
         return False
 
+    if team.region == 'root':
+        return True
+
     [start, end] = region_times[team.region]
 
     if start:
