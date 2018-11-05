@@ -4,9 +4,11 @@ from flask_restplus import Namespace, Resource
 from CTFd.models import Solves, Awards, Teams
 from CTFd.utils.scores import get_standings
 from CTFd.utils import get_config
+from CTFd.utils.user import get_current_team
 from CTFd.utils.modes import get_model
 from CTFd.utils.modes import TEAMS_MODE
 from CTFd.utils.dates import unix_time_to_utc, unix_time, isoformat
+from CTFd.utils.decorators import authed_only
 from CTFd.utils.decorators.visibility import check_account_visibility, check_score_visibility
 
 scoreboard_namespace = Namespace('scoreboard', description="Endpoint to retrieve scores")
@@ -16,12 +18,19 @@ scoreboard_namespace = Namespace('scoreboard', description="Endpoint to retrieve
 class ScoreboardList(Resource):
     @check_account_visibility
     @check_score_visibility
+    @authed_only
     def get(self):
-        filters = []
+        team = get_current_team()
+
         region = request.args.get('region', '')
+        if team.region != 'root':
+            region = team.region
+
+        filters = []
         Model = get_model()
         if region:
             filters.append(Model.region == region)
+
         standings = get_standings(filters=filters)
         response = []
         mode = get_config('user_mode')
@@ -72,10 +81,22 @@ class ScoreboardList(Resource):
 class ScoreboardDetail(Resource):
     @check_account_visibility
     @check_score_visibility
+    @authed_only
     def get(self, count):
         response = {}
 
-        standings = get_standings(count=count)
+        team = get_current_team()
+
+        region = request.args.get('region', '')
+        if team.region != 'root':
+            region = team.region
+
+        filters = []
+        Model = get_model()
+        if region:
+            filters.append(Model.region == region)
+
+        standings = get_standings(count=count, filters=filters)
 
         team_ids = [team.account_id for team in standings]
 

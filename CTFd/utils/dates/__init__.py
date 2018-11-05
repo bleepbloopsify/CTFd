@@ -1,4 +1,5 @@
 from CTFd.utils import get_config
+from CTFd.utils.user import get_current_team
 
 import datetime
 import time
@@ -52,11 +53,29 @@ def ctf_paused():
 
 
 def ctf_started():
-    return time.time() > int(get_config("start") or 0)
+    team = get_current_team()
+    if team is None:
+        return False
+
+    if team.region is None:
+        return False
+
+    [start, end] = region_times[team.region]
+
+    return time.time() > int(start or 0)
 
 
 def ctf_ended():
-    if int(get_config("end") or 0):
+    team = get_current_team()
+    if team is None:
+        return False
+
+    if team.region is None:
+        return False
+
+    [start, end] = region_times[team.region]
+
+    if int(end or 0):
         return time.time() > int(get_config("end") or 0)
     return False
 

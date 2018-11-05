@@ -75,3 +75,6 @@ CTFd/uploads
 
 # plugin generated files
 .ctfd-challenge-api-key
+
+# generated passwords
+generated.csv
