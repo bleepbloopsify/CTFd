@@ -38,7 +38,7 @@ def drop_database():
 
 
 def get_current_revision():
-    engine = create_engine(app.config.get('SQLALCHEMY_DATABASE_URI'))
+    engine = create_engine(app.config.get('SQLALCHEMY_DATABASE_URI'), pool_size=0) # no pool defaults
     conn = engine.connect()
     context = MigrationContext.configure(conn)
     current_rev = context.get_current_revision()
