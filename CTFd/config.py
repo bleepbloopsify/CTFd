@@ -186,16 +186,16 @@ class Config(object):
         Specifies whether or not CTFd will check whether or not there is a new version of CTFd
 
     '''
-    REVERSE_PROXY = False
+    REVERSE_PROXY = True
     TEMPLATES_AUTO_RELOAD = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    UPDATE_CHECK = True
+    UPDATE_CHECK = False
 
     OAUTH_AUTHORIZATION_ENDPOINT = None
     OAUTH_TOKEN_ENDPOINT = None
     OAUTH_API_ENDPOINT = None
-    OAUTH_CLIENT_ID = None
-    OAUTH_CLIENT_SECRET = None
+    OAUTH_CLIENT_ID = os.environ.get('MLC_OAUTH_CLIENT_ID', None)
+    OAUTH_CLIENT_SECRET = os.environ.get('MLC_OAUTH_CLIENT_SECRET', None)
 
 
 class TestingConfig(Config):
