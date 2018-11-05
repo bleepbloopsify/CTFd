@@ -68,8 +68,6 @@ class ScoreboardList(Resource):
                 entry
             )
 
-        print(response)
-
         return {
             'success': True,
             'data': response
