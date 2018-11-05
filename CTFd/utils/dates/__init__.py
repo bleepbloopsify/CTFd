@@ -3,12 +3,20 @@ from CTFd.utils import get_config
 import datetime
 import time
 
+from .region_times import region_times
+
 
 def ctftime():
     """ Checks whether it's CTF time or not. """
 
-    start = get_config("start")
-    end = get_config("end")
+    team = get_current_team()
+    if team is None:
+        return False
+
+    if team.region is None:
+        return False
+
+    [start, end] = region_times[team.region]
 
     if start:
         start = int(start)
