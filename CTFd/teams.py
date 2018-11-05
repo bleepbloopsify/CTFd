@@ -30,8 +30,8 @@ def listing():
     #     count = Teams.query.filter_by(verified=True, banned=False).count()
     #     teams = Teams.query.filter_by(verified=True, banned=False).slice(page_start, page_end).all()
     # else:
-    count = Teams.query.filter_by(Teams.region != 'root', banned=False).count()
-    teams = Teams.query.filter_by(Teams.region != 'root', banned=False).slice(page_start, page_end).all()
+    count = Teams.query.filter_by(banned=False).filter(Teams.region != 'root')count()
+    teams = Teams.query.filter_by(banned=False).filter(Teams.region != 'root').slice(page_start, page_end).all()
 
     pages = int(count / results_per_page) + (count % results_per_page > 0)
     return render_template('teams/teams.html', teams=teams, pages=pages, curr_page=page)
