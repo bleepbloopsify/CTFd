@@ -218,6 +218,11 @@ def login():
             user = Users.query.filter_by(name=name).first()
 
         if user:
+            if user.password is None:
+                errors.append("Please login with MLC")
+                db.session.close()
+                return render_template('login.html', errors=errors)
+
             if user and bcrypt_sha256.verify(request.form['password'], user.password):
                 session.regenerate()
 
