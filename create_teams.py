@@ -40,6 +40,15 @@ def write_teams(teams):
       f.write(', '.join([team.name, password]) + '\n')
 
 
+def set_oauth_id(name, _id):
+  existing_team = Teams.query.filter_by(name=name).first()  
+  if existing_team is None:
+    print(name + ' does not exist yet!')
+    return
+  
+  existing_team.oauth_id = _id
+  return existing_team
+
 def main():
   teams = get_teams()
 
@@ -47,6 +56,21 @@ def main():
 
   with app.app_context():
     if len(sys.argv) == 2:
+      if 'csv' in sys.argv[1]:
+
+        with open(sys.argv[1], 'r') as f:
+          for l in f.readlines():
+            l = l.strip()
+            vals = l.split(',')
+            print(vals)
+            if len(vals) == 2:
+              [_id, name] = vals
+              team = set_oauth_id(name.strip('"'), _id)
+              if team is not None:
+                db.session.add(team)
+          db.session.commit()
+        return
+
       p, team = insert_team(sys.argv[1], 'root')
       db.session.add(team)
       db.session.commit()
