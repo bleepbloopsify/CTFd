@@ -23,7 +23,7 @@ def ctftime():
         return True
 
     if team.region == '--':
-        return abort(403)
+        return abort(403, {'description': 'You are not part of a finalists team for CSAW CTF' })
 
     [start, end] = region_times[team.region]
 

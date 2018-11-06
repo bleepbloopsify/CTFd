@@ -301,6 +301,10 @@ def oauth_redirect():
                 )
                 db.session.add(team)
                 db.session.commit()
+                # created teams will not be prefilled with region so they can't do anything
+            else:
+                if len(team.members) > 3 and team.name not in ['root']:
+                    return abort(403, {'description': 'Each team may only have up to 4 members'})
 
             user = Users.query.filter_by(email=user_email).first()
             if user is None:
@@ -310,8 +314,13 @@ def oauth_redirect():
                     oauth_id=user_id,
                     verified=True
                 )
-                db.session.add(user)
-                db.session.commit()
+                try:
+                    db.session.add(user)
+                    db.session.commit()
+                except: #this breaks only on integrity checks with SQLAlchemy.
+                    # we expect MLC to take care of duplicate usernames.
+                    db.session.rollback()
+                    return abort(400, {'description': "That username is already taken" })
 
             team.members.append(user)
             db.session.commit()

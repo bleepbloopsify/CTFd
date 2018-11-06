@@ -79,3 +79,4 @@ CTFd/uploads
 # generated passwords
 generated.csv
 memes.csv
+.prod-env

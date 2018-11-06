@@ -1,2 +1,0 @@
-export DATABASE_URL=mysql+pymysql://ctf2018finals:8cXTYejUr8apOY6bU7O885bSosPouYq@db.int.isis.poly.edu/ctf2018finals
-
