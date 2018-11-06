@@ -191,9 +191,10 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPDATE_CHECK = False
 
-    OAUTH_AUTHORIZATION_ENDPOINT = None
-    OAUTH_TOKEN_ENDPOINT = None
-    OAUTH_API_ENDPOINT = None
+    OAUTH_AUTHORIZATION_ENDPOINT = 'https://auth.majorleaguecyber.org/oauth/authorize'
+    OAUTH_TOKEN_ENDPOINT = 'https://auth.majorleaguecyber.org/oauth/token'
+    OAUTH_API_ENDPOINT = 'http://api.majorleaguecyber.org/user'
+
     OAUTH_CLIENT_ID = os.environ.get('MLC_OAUTH_CLIENT_ID', None)
     OAUTH_CLIENT_SECRET = os.environ.get('MLC_OAUTH_CLIENT_SECRET', None)
 
