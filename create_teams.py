@@ -49,6 +49,10 @@ def set_oauth_id(name, _id):
   existing_team.oauth_id = _id
   return existing_team
 
+def create_regional_accounts():
+  # for region in ['CSAW US-Canada', 'CSAW Europe', 'CSAW Israel', 'CSAW India', 'CSAW ']
+  pass
+
 def main():
   teams = get_teams()
 

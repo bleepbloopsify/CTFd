@@ -34,3 +34,12 @@ region_times = {
     epoch('2018-11-10 9:00:00'),
   ],
 }
+
+region_hides = {
+  'CSAW Europe': epoch('2018-11-10 7:00:00'),
+  'CSAW Israel': epoch('2018-11-10 9:00:00'),
+  'CSAW US-Canada': epoch('2018-11-10 7:00:00'),
+  'CSAW Mexico': epoch('2018-11-10 7:00:00'),
+  'CSAW India': epoch('2018-11-10 7:00:00'),
+  'CSAW MENA': epoch('2018-11-10 7:00:00'),
+}

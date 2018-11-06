@@ -2,7 +2,8 @@ from flask import current_app as app
 from CTFd.models import Configs, Users, Teams
 from CTFd.cache import cache
 from CTFd.utils import get_config
-from CTFd.utils.user import authed
+from CTFd.utils.user import authed, get_current_team
+from CTFd.utils.dates.region_times import region_hides
 import time
 import os
 
@@ -34,11 +35,23 @@ def user_mode():
     return get_config('user_mode')
 
 
-# TODO: Not sure if this needs to be removed or if it should stay.
-# It might be best to just lean on the freeze logic.
-@cache.memoize()
+'''
+We use epoch time to hide scoreboard per region
+'''
 def hide_scores():
-    return get_config('hide_scores')
+    team = get_current_team()
+    if team is None:
+        return True
+
+    region = team.region
+    if region == 'root':
+        return False
+    
+    if region == '--':
+        return True
+
+    hide_time = int(region_times.region_hides[region])
+    return not time.time() <= hide_time
 
 
 @cache.memoize()

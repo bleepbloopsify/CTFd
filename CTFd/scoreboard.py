@@ -17,20 +17,26 @@ scoreboard = Blueprint('scoreboard', __name__)
 @authed_only
 @require_team
 def listing():
-    if config.hide_scores():
-        return render_template(
-            'scoreboard.html',
-            errors=['Scores are currently hidden']
-        )
-    
     team = get_current_team()
 
     regions = ['', 'CSAW US-Canada', 'CSAW Europe', 'CSAW Israel', 'CSAW India', 'CSAW MENA', 'CSAW Mexico']
     region = team.region # if this is admin we show everything and the filter
 
+    if region == '--':
+        return render_template(
+            'scoreboard.html',
+            errors=['Scores are only visible to qualifying teams']
+        )
+
+    if config.hide_scores():
+        return render_template(
+            'scoreboard.html',
+            errors=['Scores are currently hidden']
+        )
+
     filters = []
     Model = get_model()
-    if region:
+    if region and region != 'root' and region != '--':
         filters.append(Model.region == region)
 
     standings = get_standings(filters=filters)
