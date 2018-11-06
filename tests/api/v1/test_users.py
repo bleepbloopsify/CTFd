@@ -229,7 +229,7 @@ def test_api_user_patch_me_logged_in():
                                                        "confirm": "password",
                                                        "country": "US"})
             assert r.status_code == 200
-            assert r.get_json()['data'][0]['country'] == 'US'
+            assert r.get_json()['data']['country'] == 'US'
     destroy_ctfd(app)
 
 
