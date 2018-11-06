@@ -13,12 +13,9 @@ def forbidden(error):
 
 # 500
 def general_error(error):
-    if getattr(error, 'description') is not None:
-      return render_template('errors/500.html', error=error.description), 500
-    else:
-      return render_template('errors/500.html', error=error), 500
+    return render_template('errors/500.html'), 500
 
 
 # 502
 def gateway_error(error):
-    return render_template('errors/502.html', error=error.description), 502
+    return render_template('errors/502.html'), 502

@@ -1,3 +1,5 @@
+from flask import abort
+
 from CTFd.utils import get_config
 from CTFd.utils.user import get_current_team
 
@@ -19,6 +21,9 @@ def ctftime():
 
     if team.region == 'root':
         return True
+
+    if team.region == '--':
+        return abort(403)
 
     [start, end] = region_times[team.region]
 
