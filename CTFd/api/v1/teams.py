@@ -152,6 +152,7 @@ class TeamPrivate(Resource):
         }
 
     @authed_only
+    @admins_only
     def patch(self):
         team = get_current_team()
         data = request.get_json()
