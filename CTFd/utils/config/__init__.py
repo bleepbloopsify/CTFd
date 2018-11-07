@@ -50,7 +50,7 @@ def hide_scores():
     if region == '--':
         return True
 
-    hide_time = int(region_times.region_hides[region])
+    hide_time = int(region_hides[region])
     return not time.time() <= hide_time
 
 
