@@ -80,3 +80,4 @@ CTFd/uploads
 generated.csv
 memes.csv
 .prod-env
+*.csv

@@ -35,7 +35,7 @@ def get_teams():
         yield(name, region)
       
 def write_teams(teams):
-  with open('generated.csv', 'w+') as f:
+  with open('short_generated.csv', 'w+') as f:
     for password, team in teams:
       f.write(', '.join([team.name, password]) + '\n')
 
@@ -54,7 +54,7 @@ def create_regional_accounts():
   pass
 
 def main():
-  teams = get_teams()
+  teams = [('0xaa55', 'CSAW Israel'), ('MONKEY', 'CSAW Israel')]
 
   created = []
 
