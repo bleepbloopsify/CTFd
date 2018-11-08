@@ -84,7 +84,8 @@ def ctf_ended():
     [start, end] = region_times[team.region]
 
     if int(end or 0):
-        return time.time() > int(get_config("end") or 0)
+        return time.time() < int(end or 0)
+
     return False
 
 
