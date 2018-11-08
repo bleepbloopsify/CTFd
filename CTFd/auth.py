@@ -307,12 +307,12 @@ def oauth_redirect():
                 db.session.add(team)
                 db.session.commit()
                 # created teams will not be prefilled with region so they can't do anything
-            else:
-                if len(team.members) > 3 and team.name not in ['root', 'NYUSEC']:
-                    return abort(403, {'description': 'Each team may only have up to 4 members'})
 
             user = Users.query.filter_by(email=user_email).first()
             if user is None:
+                if len(team.members) > 3 and team.name not in ['root', 'NYUSEC']:
+                    return abort(403, {'description': 'Each team may only have up to 4 members'})
+
                 user = Users(
                     name=user_name,
                     email=user_email,
