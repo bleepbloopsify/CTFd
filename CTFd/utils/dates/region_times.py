@@ -10,8 +10,8 @@ def epoch(d):
 
 region_times = {
   'CSAW Europe': [
-    epoch('2018-11-8 16:00:00'),
-    epoch('2018-11-10 4:00:00'),
+    epoch('2018-11-8 15:00:00'),
+    epoch('2018-11-10 3:00:00'),
   ],
   'CSAW Israel': [
     epoch('2018-11-8 23:00:00'),
@@ -36,7 +36,7 @@ region_times = {
 }
 
 region_hides = {
-  'CSAW Europe': epoch('2018-11-10 7:00:00'),
+  'CSAW Europe': epoch('2018-11-10 1:00:00'),
   'CSAW Israel': epoch('2018-11-10 9:00:00'),
   'CSAW US-Canada': epoch('2018-11-10 7:00:00'),
   'CSAW Mexico': epoch('2018-11-10 7:00:00'),
