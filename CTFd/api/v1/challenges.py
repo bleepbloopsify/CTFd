@@ -2,6 +2,7 @@ from flask import session, request, abort
 from flask_restplus import Namespace, Resource
 from CTFd.models import (
     db,
+    Teams,
     Challenges,
     Unlocks,
     HintUnlocks,
@@ -456,8 +457,18 @@ class ChallengeSolves(Resource):
 
         Model = get_model()
 
+        filters = []
+
+        team = get_current_team()
+        region = team.region
+        if region is None:
+            abort(403)
+        elif region is not 'root':
+            filters.append(Teams.region == region)
+
         solves = Solves.query.join(Model, Solves.account_id == Model.id)\
             .filter(Solves.challenge_id == challenge_id, Model.banned == False, Model.hidden == False)\
+            .filter(*filters)\
             .order_by(Solves.date.asc())
 
         for solve in solves:
