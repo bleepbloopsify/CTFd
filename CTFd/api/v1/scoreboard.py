@@ -59,7 +59,7 @@ class ScoreboardList(Resource):
                         'oauth_id': member.oauth_id,
                         'name': member.name,
                         'score': int(member.score),
-                        'region': member.region,
+                        'region': x.region,
                     })
 
                 entry['members'] = members
