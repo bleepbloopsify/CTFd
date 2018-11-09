@@ -96,8 +96,6 @@ class ScoreboardDetail(Resource):
             filters.append(Model.region == region)
 
         standings = get_standings(count=count, filters=filters)
-        if region and region != 'root' and region != '--':
-            standings = filter(lambda s: s[4] == region, standings)
 
         team_ids = [team.account_id for team in standings]
 

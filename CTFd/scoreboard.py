@@ -40,8 +40,6 @@ def listing():
         filters.append(Model.region == region)
 
     standings = get_standings(filters=filters)
-    if region and region != 'root' and region != '--':
-        standings = filter(lambda s: s[4] == region, standings)
 
     return render_template(
         'scoreboard.html',
