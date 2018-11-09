@@ -23,6 +23,7 @@ class ScoreboardList(Resource):
         team = get_current_team()
 
         region = request.args.get('region', '')
+        print('Region:' +  region)
         if team.region != 'root':
             region = team.region
 
