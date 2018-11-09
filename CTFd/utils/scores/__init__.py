@@ -26,7 +26,6 @@ def get_standings(count=None, admin=False, filters=[]):
         db.func.max(Solves.date).label('date')
     ).join(Challenges) \
         .filter(Challenges.value != 0) \
-        .filter(*filters) \
         .group_by(Solves.account_id)
 
     awards = db.session.query(
@@ -36,7 +35,6 @@ def get_standings(count=None, admin=False, filters=[]):
         db.func.max(Awards.date).label('date')
     ) \
         .filter(Awards.value != 0) \
-        .filter(*filters) \
         .group_by(Awards.account_id)
 
     """
@@ -51,7 +49,6 @@ def get_standings(count=None, admin=False, filters=[]):
     Combine awards and solves with a union. They should have the same amount of columns
     """
     results = union_all(scores, awards).alias('results')
-
     """
     Sum each of the results by the team id to get their score.
     """
@@ -62,6 +59,7 @@ def get_standings(count=None, admin=False, filters=[]):
         db.func.max(results.columns.date).label('date')
     ).group_by(results.columns.account_id) \
         .subquery()
+
 
     """
     Admins can see scores for all users but the public cannot see banned users.
@@ -82,6 +80,7 @@ def get_standings(count=None, admin=False, filters=[]):
             sumscores.columns.score
         ) \
             .join(sumscores, Model.id == sumscores.columns.account_id) \
+            .filter(*filters) \
             .order_by(sumscores.columns.score.desc(), sumscores.columns.id)
     else:
         standings_query = db.session.query(
@@ -92,13 +91,10 @@ def get_standings(count=None, admin=False, filters=[]):
             sumscores.columns.score
         ) \
             .join(sumscores, Model.id == sumscores.columns.account_id) \
-            .filter(Model.banned == False, Model.hidden == False, *filters) \
-            .order_by(sumscores.columns.score.desc(), sumscores.columns.id)
+            .filter(Model.banned == False, Model.hidden == False) \
+            .filter(*filters) \
+            .order_by(sumscores.columns.score.desc(), sumscores.columns.id)\
 
-    """
-    Allow for adding custom filters to standings here
-    """
-    stadings_query = standings_query.filter(*filters)
 
     """
     Only select a certain amount of users if asked.
