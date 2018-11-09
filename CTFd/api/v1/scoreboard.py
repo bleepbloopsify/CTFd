@@ -48,6 +48,7 @@ class ScoreboardList(Resource):
                 'pos': i + 1,
                 'account_id': x.account_id,
                 'oauth_id': x.oauth_id,
+                'region': x.region,
                 'name': x.name,
                 'score': int(x.score)
             }
@@ -60,7 +61,6 @@ class ScoreboardList(Resource):
                         'oauth_id': member.oauth_id,
                         'name': member.name,
                         'score': int(member.score),
-                        'region': x.region,
                     })
 
                 entry['members'] = members
