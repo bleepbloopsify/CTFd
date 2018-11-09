@@ -461,9 +461,10 @@ class ChallengeSolves(Resource):
 
         team = get_current_team()
         region = team.region
+
         if region is None:
             abort(403)
-        elif region is not 'root':
+        elif region != 'root':
             filters.append(Teams.region == region)
 
         solves = Solves.query.join(Model, Solves.account_id == Model.id)\
@@ -477,6 +478,8 @@ class ChallengeSolves(Resource):
                 'name': solve.account.name,
                 'date': isoformat(solve.date)
             })
+
+        print(response)
 
         return {
             'success': True,

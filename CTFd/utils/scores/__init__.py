@@ -92,14 +92,13 @@ def get_standings(count=None, admin=False, filters=[]):
             sumscores.columns.score
         ) \
             .join(sumscores, Model.id == sumscores.columns.account_id) \
-            .filter(Model.banned == False, Model.hidden == False) \
+            .filter(Model.banned == False, Model.hidden == False, *filters) \
             .order_by(sumscores.columns.score.desc(), sumscores.columns.id)
 
     """
     Allow for adding custom filters to standings here
     """
     stadings_query = standings_query.filter(*filters)
-
 
     """
     Only select a certain amount of users if asked.
