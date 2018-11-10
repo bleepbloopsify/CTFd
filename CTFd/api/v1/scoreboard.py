@@ -4,6 +4,7 @@ from flask_restplus import Namespace, Resource
 from CTFd.models import Solves, Awards, Teams
 from CTFd.utils.scores import get_standings
 from CTFd.utils import get_config
+from CTFd.config import hide_scores
 from CTFd.utils.user import get_current_team
 from CTFd.utils.modes import get_model
 from CTFd.utils.modes import TEAMS_MODE
@@ -36,6 +37,9 @@ class ScoreboardList(Resource):
         standings = get_standings(filters=filters)
         response = []
         mode = get_config('user_mode')
+
+        if team.region != 'root' and hide_scores():
+            return abort(403)
 
         if mode == TEAMS_MODE:
             team_ids = []
@@ -95,6 +99,9 @@ class ScoreboardDetail(Resource):
         Model = get_model()
         if region:
             filters.append(Model.region == region)
+
+        if team.region != 'root' and hide_scores():
+            return abort(403)
 
         standings = get_standings(count=count, filters=filters)
 

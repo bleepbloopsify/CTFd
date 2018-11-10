@@ -51,7 +51,7 @@ def hide_scores():
         return True
 
     hide_time = int(region_hides[region])
-    return not time.time() <= hide_time
+    return time.time() > hide_time
 
 
 @cache.memoize()

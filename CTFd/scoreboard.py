@@ -2,6 +2,7 @@ from flask import render_template, Blueprint, redirect, url_for, request
 
 from CTFd.utils import config
 from CTFd.utils import get_config
+from CTFd.utils.config import hide_scores
 from CTFd.utils.modes import get_model
 from CTFd.utils.user import get_current_team
 from CTFd.utils.decorators import authed_only, require_team
@@ -33,6 +34,8 @@ def listing():
             'scoreboard.html',
             errors=['Scores are currently hidden']
         )
+
+    
 
     filters = []
     Model = get_model()
