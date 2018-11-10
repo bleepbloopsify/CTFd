@@ -4,7 +4,7 @@ from flask_restplus import Namespace, Resource
 from CTFd.models import Solves, Awards, Teams
 from CTFd.utils.scores import get_standings
 from CTFd.utils import get_config
-from CTFd.config import hide_scores
+from CTFd.utils.config import hide_scores
 from CTFd.utils.user import get_current_team
 from CTFd.utils.modes import get_model
 from CTFd.utils.modes import TEAMS_MODE
